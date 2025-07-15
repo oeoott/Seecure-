@@ -1,0 +1,114 @@
+/* General Layout */
+.secure-option-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: white;
+  overflow: hidden;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Main Content Area */
+.main-content {
+  position: absolute;
+  left: 593px;
+  top: 250px;
+  width: 465px;
+  text-align: center;
+}
+
+.main-title {
+  margin: 0;
+  color: #054071;
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 72px;
+}
+
+.subtitle {
+  margin: 0;
+  color: #1393DB;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* Protection Options */
+.options-container {
+  position: absolute;
+  top: 436px;
+  left: 495px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px; /* 옵션 간의 수직 간격 */
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 100px; /* 제목과 토글 스위치 간의 간격 */
+}
+
+.option-title {
+  color: #054071;
+  font-size: 36px;
+  font-weight: 600;
+  width: 244px; /* 너비 고정으로 정렬 유지 */
+  text-align: left;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.toggle-label {
+  color: #054071;
+  font-family: 'Roboto';
+  font-size: 36px;
+  font-weight: 500;
+}
+
+.toggle-label.inactive {
+  opacity: 0.5; /* 비활성화된 텍스트는 약간 투명하게 */
+}
+
+.toggle-box {
+  width: 41px;
+  height: 41px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.toggle-box.selected {
+  background: #054071;
+  border: 1px #054071 solid;
+}
+
+.toggle-box.unselected {
+  background: white;
+  border: 1px #054071 solid;
+}
+
+
+/* Save Button */
+.save-button {
+  position: absolute;
+  left: 1176px;
+  top: 680px;
+  width: 106px;
+  height: 45px;
+  padding: 0 16px;
+  background: #1171C0;
+  border-radius: 8px;
+  border: none;
+  box-sizing: border-box;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+  cursor: pointer;
+}
