@@ -1,0 +1,114 @@
+/* Sidebar Container */
+.sidebar {
+  width: 256px;
+  height: 960px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #054071;
+  border-right: 1px #E0E0E0 solid;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Logo */
+.logo-area {
+  position: relative;
+  height: 78px;
+}
+
+.logo-text {
+  position: absolute;
+  left: 99px;
+  top: 19px;
+  margin: 0;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 36px;
+}
+
+.logo-image {
+  width: 53px;
+  height: 33px;
+  position: absolute;
+  left: 36px;
+  top: 20px;
+  mix-blend-mode: screen;
+}
+
+/* Navigation */
+.nav-container {
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  background: white;
+  color: #054071;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.nav-item.active {
+  background: #92D8FF;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.nav-icon.rotated {
+  transform: rotate(180deg);
+  transform-origin: top left;
+}
+
+.nav-text {
+  flex: 1;
+}
+
+/* Login Area */
+.login-area {
+  margin-top: auto; /* Push login area to the bottom */
+  position: relative;
+  left: 22px;
+  bottom: 15px;
+  height: 40px;
+}
+
+.login-button {
+  height: 40px;
+  padding: 0 16px;
+  background: #1393DB;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.signin-text {
+  position: absolute;
+  left: 160px;
+  top: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  text-decoration: none;
+}
