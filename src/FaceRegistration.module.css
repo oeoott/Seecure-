@@ -1,6 +1,3 @@
-/* ✅ 수정: JSX에 맞춰 클래스 이름을 변경했습니다. */
-
-/* 전체 레이아웃: pageContainer로 변경 */
 .pageContainer {
   display: flex;
   height: 100vh;
@@ -8,23 +5,28 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* 메인 콘텐츠 영역: contentWrapper로 변경 */
 .contentWrapper {
   flex: 1;
+  display: flex;
+  justify-content: center;  /* 가로 가운데 */
+  align-items: center;      /* 세로 가운데 */
+  background-color: white;
   padding: 4vh 4vw;
+}
+
+.mainContent {
+  width: 100%;
+  max-width: 880px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
 }
 
-/* 타이틀 영역: mainHeader로 변경 */
 .mainHeader {
   text-align: center;
   margin-bottom: 3vh;
 }
 
-/* mainTitle 및 subtitle 클래스 추가 */
 .mainTitle {
   font-size: 2.5vw;
   font-weight: 600;
@@ -38,10 +40,8 @@
   margin-top: 6px;
 }
 
-/* 웹캠 영상 영역 */
 .videoBox {
   width: 100%;
-  max-width: 880px;
   aspect-ratio: 16 / 9;
   background-color: #f2f2f2;
   border: 1px solid #054071;
@@ -49,7 +49,6 @@
   margin-bottom: 3vh;
 }
 
-/* 입력 및 버튼 정렬 영역 */
 .formRow {
   display: flex;
   align-items: center;
@@ -86,7 +85,7 @@
   cursor: pointer;
 }
 
-/* 모바일 대응 스타일 */
+/* 모바일 대응 */
 @media (max-width: 767px) {
   .mainTitle {
     font-size: 6vw;

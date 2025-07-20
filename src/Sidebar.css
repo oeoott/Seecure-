@@ -1,11 +1,12 @@
-<<<<<<< HEAD
+/* Sidebar.css - Hover Effect Added */
+
 /* 기본 폰트 크기를 16px로 가정하고, 모든 px 단위를 rem으로 변환했습니다. (1rem = 16px) */
 
 /* Sidebar Container */
 .sidebar {
   width: 16.25rem; /* 260px */
-  height: 100%; /* 화면 전체 높이를 차지하도록 수정 */
-  position: absolute;
+  height: 100vh;
+  position: fixed; /* position을 fixed로 변경하여 스크롤과 무관하게 고정 */
   left: 0;
   top: 0;
   background: #054071;
@@ -13,6 +14,7 @@
   display: flex;
   flex-direction: column;
   font-family: 'Inter', sans-serif;
+  z-index: 1000; /* 다른 요소에 가려지지 않도록 z-index 설정 */
 }
 
 /* Logo */
@@ -26,7 +28,6 @@
 }
 
 .logo-text {
-  /* position: absolute 제거 */
   margin: 0;
   color: white;
   font-size: 1.5rem; /* 24px */
@@ -35,7 +36,6 @@
 }
 
 .logo-image {
-  /* position: absolute 제거 */
   width: 3.3125rem; /* 53px */
   height: 2.0625rem; /* 33px */
   mix-blend-mode: screen;
@@ -57,15 +57,26 @@
   align-items: center;
   gap: 1rem; /* 16px */
   cursor: pointer;
-  background: white;
   color: #054071;
   font-size: 1rem; /* 16px */
   font-weight: 500;
   line-height: 1.5;
-  transition: background-color 0.2s;
+  /* ✨ 움직임 효과를 위한 transition 속성 추가 */
+  transition: background-color 0.2s, transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-.nav-item.active {
+/* ✨ 메인 메뉴 아이템 (흰색 버튼) */
+.nav-item.main {
+  background: white;
+}
+
+/* ✨ 메인 메뉴에 마우스를 올렸을 때 효과 */
+.nav-item.main:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item.main.active {
   background: #92D8FF;
 }
 
@@ -83,9 +94,8 @@
 }
 
 .login-area {
-  position: absolute;
-  bottom: 0.9375rem;
-  padding-left: 1.375rem;
+  margin-top: auto; /* 하단에 고정시키기 위해 변경 */
+  padding: 1.25rem 1.375rem; /* 20px 22px */
 }
 
 .logout-button {
@@ -106,134 +116,24 @@
   flex-direction: column;
   gap: 0.25rem; /* 4px */
   padding-left: 1.5rem; /* 24px */
+  margin: 0.25rem 0;
 }
 
+/* 서브 메뉴 아이템 */
 .nav-item.sub {
   background: transparent;
   color: white;
   padding-left: 1rem; /* 16px */
 }
 
+/* 서브 메뉴에 마우스를 올렸을 때 효과 */
 .nav-item.sub:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  transform: none;
+  box-shadow: none;
 }
 
 .nav-item.sub.active-sub {
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.15);
-=======
-/* Sidebar Container */
-.sidebar {
-  width: 256px;
-  height: 960px;
-  position: absolute;
-  left: 0;
-  top: 0;
-  background: #054071;
-  border-right: 1px #E0E0E0 solid;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Inter', sans-serif;
-}
-
-/* Logo */
-.logo-area {
-  position: relative;
-  height: 78px;
-}
-
-.logo-text {
-  position: absolute;
-  left: 99px;
-  top: 19px;
-  margin: 0;
-  color: white;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 36px;
-}
-
-.logo-image {
-  width: 53px;
-  height: 33px;
-  position: absolute;
-  left: 36px;
-  top: 20px;
-  mix-blend-mode: screen;
-}
-
-/* Navigation */
-.nav-container {
-  padding: 0 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nav-item {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  background: white;
-  color: #054071;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-}
-
-.nav-item.active {
-  background: #92D8FF;
-}
-
-.nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.nav-icon.rotated {
-  transform: rotate(180deg);
-  transform-origin: top left;
-}
-
-.nav-text {
-  flex: 1;
-}
-
-/* Login Area */
-.login-area {
-  margin-top: auto; /* Push login area to the bottom */
-  position: relative;
-  left: 22px;
-  bottom: 15px;
-  height: 40px;
-}
-
-.login-button {
-  height: 40px;
-  padding: 0 16px;
-  background: #1393DB;
-  border-radius: 8px;
-  border: none;
-  color: white;
-  font-size: 16px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  line-height: 24px;
-  cursor: pointer;
-}
-
-.signin-text {
-  position: absolute;
-  left: 160px;
-  top: 8px;
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 24px;
-  text-decoration: none;
->>>>>>> LSJ
 }

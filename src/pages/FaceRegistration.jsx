@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar.jsx';
-// CSS 파일을 'styles'라는 이름으로 불러옵니다.
 import styles from '../FaceRegistration.module.css';
 
 const FaceRegistration = ({ setPage }) => {
@@ -11,7 +10,6 @@ const FaceRegistration = ({ setPage }) => {
       alert('이름을 입력해주세요.');
       return;
     }
-    // 이 부분은 localStorage를 사용하므로 안전하게 try-catch로 감싸주는 것이 좋습니다.
     try {
       const savedFaces = localStorage.getItem('managedFaces');
       const faceList = savedFaces ? JSON.parse(savedFaces) : [];
@@ -27,16 +25,14 @@ const FaceRegistration = ({ setPage }) => {
   };
 
   return (
-    // 'styles' 변수를 사용합니다.
     <div className={styles.pageContainer}>
       <Sidebar currentPage="FaceRegistration" setPage={setPage} />
       <div className={styles.contentWrapper}>
-        <header className={styles.mainHeader}>
-          <h1 className={styles.mainTitle}>얼굴 등록</h1>
-          <p className={styles.subtitle}>웹캠을 통해 얼굴을 등록해보세요.</p>
-        </header>
-        {/* ✅ 수정: 'customStyles'를 'styles'로 모두 변경 */}
-        <main className={styles.mainContent}>
+        <div className={styles.mainContent}>
+          <header className={styles.mainHeader}>
+            <h1 className={styles.mainTitle}>얼굴 등록</h1>
+            <p className={styles.subtitle}>웹캠을 통해 얼굴을 등록해보세요.</p>
+          </header>
           <div className={styles.videoBox} />
           <div className={styles.formRow}>
             <label>이름 입력</label>
@@ -48,7 +44,7 @@ const FaceRegistration = ({ setPage }) => {
             />
             <button onClick={handleRegister}>등록</button>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

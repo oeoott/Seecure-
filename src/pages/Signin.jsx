@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import logo from '../assets/logo.png';
 
-function Signin({ setCurrentPage }) {
+function Signin({ setPage }) {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -36,7 +36,7 @@ function Signin({ setCurrentPage }) {
     }
 
     // 모든 조건 충족 시 success 페이지로 이동
-    setCurrentPage('success');
+    setPage('success');
   };
 
   return (

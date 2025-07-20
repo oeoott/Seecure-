@@ -1,7 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from '../assets/logo.png';
 
 function Login({ setPage }) {
+  const [id, setId] = useState('');
+  const [password, setPassword] = useState('');
+
+  // 로그인 로직 (로컬 더미 유저 기반)
+  const handleLogin = () => {
+    const dummyUser = {
+      id: '1',
+      password: '1',
+    };
+
+    if (id === dummyUser.id && password === dummyUser.password) {
+      setPage('Home');
+    } else {
+      alert('ID 또는 비밀번호가 올바르지 않습니다.');
+    }
+  };
+
   return (
     <div
       style={{
@@ -17,7 +34,7 @@ function Login({ setPage }) {
       }}
     >
       {/* 로고 및 타이틀 */}
-      <div style={{ display: 'flex', alignItems: 'center'}}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <img
           src={logo}
           alt="logo"
@@ -37,6 +54,8 @@ function Login({ setPage }) {
         <input
           type="text"
           placeholder="ID"
+          value={id}
+          onChange={(e) => setId(e.target.value)}
           style={{
             height: 40,
             padding: '0 12px',
@@ -48,6 +67,8 @@ function Login({ setPage }) {
         <input
           type="password"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           style={{
             height: 40,
             padding: '0 12px',
@@ -57,6 +78,7 @@ function Login({ setPage }) {
           }}
         />
         <button
+          onClick={handleLogin}
           style={{
             height: 40,
             backgroundColor: '#1171C0',

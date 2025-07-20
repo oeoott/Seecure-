@@ -2,7 +2,7 @@
 import React from 'react';
 import logo from '../assets/logo.png';
 
-function Success({ setCurrentPage }) {
+function Success({ setPage }) {
   return (
     <div
       style={{
@@ -39,7 +39,7 @@ function Success({ setCurrentPage }) {
 
       {/* 로그인하기 버튼 → 로그인 페이지로 이동 */}
       <button
-        onClick={() => setCurrentPage('login')}
+        onClick={() => setPage('login')}
         style={{
           width: 300,
           height: 40,
