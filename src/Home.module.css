@@ -1,0 +1,197 @@
+/* src/Home.module.css */
+
+/* 전체 레이아웃 컨테이너 */
+.mainContainer {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #fff;
+  display: flex;
+  justify-content: center; /* 콘텐츠를 중앙에 배치 */
+  padding: 2rem; /* 화면 가장자리에 여백 */
+  box-sizing: border-box;
+}
+
+/* 모든 콘텐츠를 감싸는 컨테이너 */
+.contentWrapper {
+  width: 100%;
+  max-width: 1280px; /* 최대 너비 설정 */
+  display: flex;
+  flex-direction: column;
+  gap: 3rem; /* userPanel과 dashboardGrid 사이의 간격 */
+}
+
+/* 상단 패널 (보호모드) */
+.userPanel {
+  background: white;
+  box-shadow: 4px 4px 2px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 46px;
+  border: 3px solid rgba(0, 0, 0, 0.10);
+  padding: 2rem 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  height: 340px;
+  box-sizing: border-box;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.avatar {
+  width: 153px;
+  height: 153px;
+}
+
+.mainTitle {
+  color: #054071;
+  font-size: 70px; /* 4.375rem */
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.userName {
+  color: #1B3F84;
+  font-size: 32px; /* 2rem */
+  font-weight: 400;
+  margin: 0;
+  text-align: left;
+}
+
+.statusToggle {
+  background-color: #61AAF5;
+  border-radius: 85px;
+  width: 179px;
+  height: 114px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.statusToggle.off {
+  background-color: #EA8C8C; /* OFF 상태일 때의 색상 */
+}
+
+.statusToggle .statusText {
+  color: white;
+  font-size: 48px; /* 3rem */
+  font-weight: 600;
+}
+
+/* 하단 대시보드 그리드 */
+.dashboardGrid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2.5rem 2.75rem; /* 세로 간격, 가로 간격 */
+}
+
+.card {
+  background: white;
+  box-shadow: 4px 4px 2px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 46px;
+  border: 3px solid rgba(0, 0, 0, 0.10);
+  display: flex;
+  box-sizing: border-box;
+  color: #3B6BBA;
+  font-weight: 600;
+  position: relative;
+}
+
+/* 큰 카드 (얼굴, URL) 스타일 */
+.faceCard, .urlCard {
+  flex-direction: column;
+  justify-content: flex-end; /* 콘텐츠를 아래로 정렬 */
+  align-items: center;
+  padding: 2rem;
+}
+
+.faceCard p, .urlCard p {
+  font-size: 36px; /* 2.25rem */
+  margin: 0;
+}
+
+.largeIcon {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 103px;
+  height: auto;
+}
+
+/* 작은 카드 (블러, 알림) 스타일 */
+.blurCard, .alertCard {
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.blurCard p, .alertCard p {
+  font-size: 30px; /* 1.875rem */
+  margin: 0;
+}
+
+.smallIcon {
+  width: 65px;
+  height: auto;
+}
+
+.alertCard .smallIcon {
+  width: 56px;
+}
+
+.textGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.optionStatusText {
+  color: #1393DB;
+  font-size: 32px; /* 2rem */
+  font-weight: 600;
+}
+
+/* 그리드 아이템 위치 및 크기 조정 */
+.faceCard {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+
+.urlCard {
+  grid-column: 2 / 3;
+  grid-row: 1 / 3;
+}
+
+.blurCard {
+  grid-column: 3 / 4;
+  grid-row: 1 / 2;
+}
+
+.alertCard {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+
+.optionStatusText {
+  color: #1393DB;
+  font-size: 32px; /* 2rem */
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* OFF 상태일 때 적용될 스타일 */
+.optionStatusText.offStatus {
+  color: #EA8C8C;
+}

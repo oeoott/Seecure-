@@ -1,0 +1,87 @@
+/* ✅ JSX 코드에 맞춰 클래스 이름을 모두 수정했습니다. */
+
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Inter', sans-serif;
+}
+
+.contentWrapper {
+  flex: 1;
+  padding: 5vh 5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.mainHeader {
+  text-align: center;
+  margin-bottom: 4vh;
+}
+
+/* h1, p 태그에 직접 적용할 클래스 생성 */
+.mainTitle {
+  font-size: 2.8vw;
+  font-weight: 600;
+  color: #054071;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1vw;
+  color: #1393DB;
+  margin-top: 8px;
+}
+
+.urlListContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* 간격 살짝 조정 */
+  width: 100%;
+  max-width: 960px;
+}
+
+/* 개별 항목 스타일 */
+.urlItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 양쪽 끝으로 정렬 */
+  padding: 16px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.urlText {
+  font-size: 16px;
+  font-weight: 500;
+  color: #054071;
+}
+
+.deleteButton {
+  background-color: #F45F5F;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  .mainTitle {
+    font-size: 6vw;
+  }
+  .subtitle {
+    font-size: 3.5vw;
+  }
+  .urlItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

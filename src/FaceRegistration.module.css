@@ -1,0 +1,106 @@
+/* ✅ 수정: JSX에 맞춰 클래스 이름을 변경했습니다. */
+
+/* 전체 레이아웃: pageContainer로 변경 */
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Inter', sans-serif;
+}
+
+/* 메인 콘텐츠 영역: contentWrapper로 변경 */
+.contentWrapper {
+  flex: 1;
+  padding: 4vh 4vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+/* 타이틀 영역: mainHeader로 변경 */
+.mainHeader {
+  text-align: center;
+  margin-bottom: 3vh;
+}
+
+/* mainTitle 및 subtitle 클래스 추가 */
+.mainTitle {
+  font-size: 2.5vw;
+  font-weight: 600;
+  color: #054071;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1vw;
+  color: #1393DB;
+  margin-top: 6px;
+}
+
+/* 웹캠 영상 영역 */
+.videoBox {
+  width: 100%;
+  max-width: 880px;
+  aspect-ratio: 16 / 9;
+  background-color: #f2f2f2;
+  border: 1px solid #054071;
+  border-radius: 35px;
+  margin-bottom: 3vh;
+}
+
+/* 입력 및 버튼 정렬 영역 */
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8vw;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.formRow label {
+  font-size: 1vw;
+  font-weight: 600;
+  color: #054071;
+}
+
+.formRow input {
+  width: 14vw;
+  min-width: 150px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+  border: 1px solid #054071;
+  border-radius: 8px;
+}
+
+.formRow button {
+  height: 36px;
+  padding: 0 24px;
+  background-color: #1171C0;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* 모바일 대응 스타일 */
+@media (max-width: 767px) {
+  .mainTitle {
+    font-size: 6vw;
+  }
+
+  .subtitle {
+    font-size: 3.5vw;
+  }
+
+  .formRow label {
+    font-size: 16px;
+  }
+
+  .formRow input {
+    width: 200px;
+  }
+}
