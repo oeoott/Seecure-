@@ -1,5 +1,3 @@
-// src/pages/Sidebar.jsx
-
 import React, { useState } from 'react';
 import '../Sidebar.css';
 import logoImage from '../assets/logo.png';
@@ -9,7 +7,6 @@ import urlIcon from '../assets/icon_url.png';
 import shieldIcon from '../assets/icon_shield.png';
 
 const Sidebar = ({ currentPage, setPage }) => {
-  // 각 메뉴의 열림 상태를 별도로 관리
   const [isUrlMenuOpen, setIsUrlMenuOpen] = useState(currentPage.startsWith('Url'));
   const [isFaceMenuOpen, setIsFaceMenuOpen] = useState(currentPage.startsWith('Face'));
 
@@ -17,13 +14,20 @@ const Sidebar = ({ currentPage, setPage }) => {
     setPage(pageName);
   };
 
+  const handleLogout = () => {
+    // 로그인 상태 삭제
+    localStorage.removeItem('token'); // 실제 키 이름에 따라 수정
+    alert('로그아웃 되었습니다.');
+    setPage('login'); // 로그인 페이지로 이동
+  };
+
   const navItems = [
     { name: "홈", page: "Home", icon: homeIcon },
-    { name: "얼굴 등록", page: "FaceRegistration", icon: faceIcon }, // 'page'는 대표 페이지로 설정
-    { name: "URL 등록", page: "UrlRegistration", icon: urlIcon }, // 'page'는 대표 페이지로 설정
+    { name: "얼굴 등록", page: "FaceRegistration", icon: faceIcon },
+    { name: "URL 등록", page: "UrlRegistration", icon: urlIcon },
     { name: "보호 옵션", page: "SecureOption", icon: shieldIcon },
   ];
-  
+
   const urlSubItems = [
     { name: "URL 등록", page: "UrlRegistration" },
     { name: "등록 URL 관리", page: "UrlManagement" },
@@ -40,9 +44,10 @@ const Sidebar = ({ currentPage, setPage }) => {
         <img className="logo-image" src={logoImage} alt="SeeCure logo" />
         <h1 className="logo-text">SeeCure</h1>
       </div>
+
       <nav className="nav-container">
         {navItems.map((item) => {
-          // 얼굴 등록 메뉴 (하위 메뉴 있음)
+          // 얼굴 등록 메뉴
           if (item.name === '얼굴 등록') {
             return (
               <React.Fragment key={item.name}>
@@ -55,7 +60,7 @@ const Sidebar = ({ currentPage, setPage }) => {
                 </div>
                 {isFaceMenuOpen && (
                   <div className="submenu-container">
-                    {faceSubItems.map(subItem => (
+                    {faceSubItems.map((subItem) => (
                       <div
                         key={subItem.name}
                         className={`nav-item sub ${currentPage === subItem.page ? 'active-sub' : ''}`}
@@ -69,8 +74,8 @@ const Sidebar = ({ currentPage, setPage }) => {
               </React.Fragment>
             );
           }
-          
-          // URL 등록 메뉴 (하위 메뉴 있음)
+
+          // URL 등록 메뉴
           if (item.name === 'URL 등록') {
             return (
               <React.Fragment key={item.name}>
@@ -83,7 +88,7 @@ const Sidebar = ({ currentPage, setPage }) => {
                 </div>
                 {isUrlMenuOpen && (
                   <div className="submenu-container">
-                    {urlSubItems.map(subItem => (
+                    {urlSubItems.map((subItem) => (
                       <div
                         key={subItem.name}
                         className={`nav-item sub ${currentPage === subItem.page ? 'active-sub' : ''}`}
@@ -97,8 +102,8 @@ const Sidebar = ({ currentPage, setPage }) => {
               </React.Fragment>
             );
           }
-          
-          // 일반 메뉴 (하위 메뉴 없음)
+
+          // 일반 메뉴
           return (
             <div
               key={item.name}
@@ -111,10 +116,12 @@ const Sidebar = ({ currentPage, setPage }) => {
           );
         })}
       </nav>
+
       <div className="login-area">
-        <button className="logout-button">logout</button>
+        <button className="logout-button" onClick={handleLogout}>logout</button>
       </div>
     </aside>
   );
 };
+
 export default Sidebar;

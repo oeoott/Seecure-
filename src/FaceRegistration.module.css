@@ -1,3 +1,5 @@
+/* FaceRegistration.module.css - UrlManagement 스타일 통일 */
+
 .pageContainer {
   display: flex;
   height: 100vh;
@@ -6,12 +8,15 @@
 }
 
 .contentWrapper {
-  flex: 1;
+  flex-grow: 1;
+  margin-left: 260px; /* 사이드바 너비 */
+  padding: 3rem;
+  box-sizing: border-box;
   display: flex;
-  justify-content: center;  /* 가로 가운데 */
-  align-items: center;      /* 세로 가운데 */
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
   background-color: white;
-  padding: 4vh 4vw;
 }
 
 .mainContent {
@@ -23,21 +28,26 @@
 }
 
 .mainHeader {
+  width: 100%;
   text-align: center;
-  margin-bottom: 3vh;
 }
 
 .mainTitle {
-  font-size: 2.5vw;
-  font-weight: 600;
-  color: #054071;
   margin: 0;
+  color: #054071;
+  font-family: 'Inter';
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .subtitle {
-  font-size: 1vw;
+  margin-top: 10px;
   color: #1393DB;
-  margin-top: 6px;
+  font-family: 'Inter';
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .videoBox {
@@ -46,26 +56,26 @@
   background-color: #f2f2f2;
   border: 1px solid #054071;
   border-radius: 35px;
-  margin-bottom: 3vh;
 }
 
 .formRow {
   display: flex;
   align-items: center;
-  gap: 0.8vw;
+  gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  margin-top: 1rem;
 }
 
 .formRow label {
-  font-size: 1vw;
+  font-size: 16px;
   font-weight: 600;
   color: #054071;
 }
 
 .formRow input {
-  width: 14vw;
-  min-width: 150px;
+  width: 240px;
   height: 36px;
   padding: 0 16px;
   font-size: 14px;
@@ -86,20 +96,29 @@
 }
 
 /* 모바일 대응 */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
+  .contentWrapper {
+    margin-left: 0;
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+
   .mainTitle {
-    font-size: 6vw;
+    font-size: 32px;
   }
 
   .subtitle {
-    font-size: 3.5vw;
+    font-size: 14px;
   }
 
-  .formRow label {
-    font-size: 16px;
+  .formRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
   }
 
-  .formRow input {
-    width: 200px;
+  .formRow input,
+  .formRow button {
+    width: 100%;
   }
 }

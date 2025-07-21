@@ -1,4 +1,4 @@
-/* ✅ JSX 코드에 맞춰 클래스 이름을 모두 수정했습니다. */
+/* FaceManagement.module.css - 구조 개선 및 정렬 통일 */
 
 .pageContainer {
   display: flex;
@@ -8,56 +8,67 @@
 }
 
 .contentWrapper {
-  flex: 1;
-  padding: 5vh 5vw;
+  flex-grow: 1;
+  margin-left: 260px; /* Sidebar 너비 */
+  padding: 3rem;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
+  gap: 3rem;
 }
 
 .mainHeader {
-  text-align: center;
-  margin-bottom: 4vh;
+  width: 100%;
+  max-width: 1100px;
+  box-sizing: border-box;
 }
 
-/* h1, p 태그에 직접 적용할 클래스 생성 */
 .mainTitle {
-  font-size: 2.8vw;
-  font-weight: 600;
-  color: #054071;
   margin: 0;
+  color: #054071;
+  font-family: 'Inter';
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .subtitle {
-  font-size: 1vw;
+  margin-top: 10px;
   color: #1393DB;
-  margin-top: 8px;
+  font-family: 'Inter';
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .urlListContainer {
+  width: 100%;
+  max-width: 1100px;
   display: flex;
   flex-direction: column;
-  gap: 24px; /* 간격 살짝 조정 */
-  width: 100%;
-  max-width: 960px;
+  gap: 1.5rem;
 }
 
-/* 개별 항목 스타일 */
 .urlItem {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: space-between; /* 양쪽 끝으로 정렬 */
-  padding: 16px;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #054071;
   background-color: #f7f7f7;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  box-sizing: border-box;
 }
 
 .urlText {
+  flex-grow: 1;
+  color: #333;
   font-size: 16px;
-  font-weight: 500;
-  color: #054071;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 1.5rem;
 }
 
 .deleteButton {
@@ -69,19 +80,52 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
 }
 
-/* 반응형 대응 */
+.deleteButton:hover {
+  background-color: #d9534f;
+}
+
+/* 반응형 */
 @media (max-width: 768px) {
+  .contentWrapper {
+    margin-left: 0;
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+
   .mainTitle {
-    font-size: 6vw;
+    font-size: 32px;
   }
+
   .subtitle {
-    font-size: 3.5vw;
+    font-size: 14px;
   }
+
+  .urlListContainer {
+    gap: 1rem;
+  }
+
   .urlItem {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .urlText {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    margin-right: 0;
+    width: 100%;
+    word-break: break-all;
+  }
+
+  .deleteButton {
+    width: 100%;
+    height: 44px;
   }
 }

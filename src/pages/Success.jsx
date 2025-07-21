@@ -1,6 +1,6 @@
 // src/pages/Success.jsx
 import React from 'react';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo_eye.png';
 
 function Success({ setPage }) {
   return (
@@ -24,7 +24,7 @@ function Success({ setPage }) {
         <img
           src={logo}
           alt="logo"
-          style={{ width: 48, height: 30, marginRight: 8 }}
+          style={{ width: 50, height: 30, marginRight: 8 }}
         />
         <div style={{ fontSize: 32, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
       </div>

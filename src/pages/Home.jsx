@@ -1,5 +1,7 @@
+// ./pages/home.jsx
+
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar.jsx'; // Sidebar 컴포넌트 경로는 실제 프로젝트에 맞게 확인해주세요.
+import Sidebar from './Sidebar.jsx';
 import styles from '../Home.module.css';
 
 // 아이콘 이미지 import (경로를 실제 프로젝트에 맞게 수정해주세요)
@@ -19,8 +21,13 @@ const Home = ({ setPage }) => {
   const [isBlurOn, setIsBlurOn] = useState(true);
   const [isPopupOn, setIsPopupOn] = useState(true);
 
-  // 컴포넌트가 로드될 때 localStorage에서 설정 값을 읽어와 상태를 업데이트합니다.
+  // ✅ 추가: 얼굴 및 URL 개수 상태 추가
+  const [faceCount, setFaceCount] = useState(0);
+  const [urlCount, setUrlCount] = useState(0);
+
+
   useEffect(() => {
+    // 보호 옵션 불러오기
     const savedBlur = localStorage.getItem('isBlurOn');
     if (savedBlur !== null) {
       setIsBlurOn(JSON.parse(savedBlur));
@@ -30,16 +37,24 @@ const Home = ({ setPage }) => {
     if (savedPopup !== null) {
       setIsPopupOn(JSON.parse(savedPopup));
     }
+
+    // ✅ 추가: 얼굴 개수 불러오기
+    const savedFaces = localStorage.getItem('managedFaces');
+    if (savedFaces) {
+      setFaceCount(JSON.parse(savedFaces).length);
+    }
+
+    // ✅ 추가: URL 개수 불러오기
+    const savedUrls = localStorage.getItem('managedUrls');
+    if (savedUrls) {
+      setUrlCount(JSON.parse(savedUrls).length);
+    }
   }, []); // 빈 배열을 전달하여 처음 마운트될 때 한 번만 실행
 
   // 보호 모드 토글 함수
   const handleProtectionToggle = () => {
     setIsProtectionOn(prevState => !prevState);
   };
-  
-  // 참고: 실제 블러, 팝업 토글 기능은 이 함수들을 카드 클릭 이벤트에 연결하여 구현할 수 있습니다.
-  // const handleBlurToggle = () => setIsBlurOn(prevState => !prevState);
-  // const handlePopupToggle = () => setIsPopupOn(prevState => !prevState);
 
   return (
     <div className={styles.homeLayout}>
@@ -56,8 +71,8 @@ const Home = ({ setPage }) => {
                 <p className={styles.userName}>{userName}</p>
               </div>
             </div>
-            
-            <div 
+
+            <div
               className={`${styles.statusToggle} ${!isProtectionOn ? styles.off : ''}`}
               onClick={handleProtectionToggle}
               role="button"
@@ -71,15 +86,20 @@ const Home = ({ setPage }) => {
 
           {/* 하단 대시보드 그리드 */}
           <section className={styles.dashboardGrid}>
-            <div className={`${styles.card} ${styles.faceCard}`}>
-              <p>등록된 얼굴</p>
+             {/* ✅ 수정: 등록된 얼굴 카드 - 이미지 위에 텍스트 아래로 */}
+            <div className={`${styles.card} ${styles.faceCard} ${styles.imageTop}`}>
               <img src={faceIdIcon} alt="Face ID" className={styles.largeIcon} />
+              <p>등록된 얼굴</p>
+              <p className={styles.countText}>{faceCount} 개</p> {/* 개수 표시 */}
             </div>
-            <div className={`${styles.card} ${styles.urlCard}`}>
-              <p>보호 URL</p>
+
+            {/* ✅ 수정: 보호 URL 카드 - 이미지 위에 텍스트 아래로 */}
+            <div className={`${styles.card} ${styles.urlCard} ${styles.imageTop}`}>
               <img src={urlIcon} alt="Protected URL" className={styles.largeIcon} />
+              <p>보호 URL</p>
+              <p className={styles.countText}>{urlCount} 개</p> {/* 개수 표시 */}
             </div>
-            
+
             <div className={`${styles.card} ${styles.blurCard}`}>
               <img src={blurIcon} alt="Blur Effect" className={styles.smallIcon} />
               <div className={styles.textGroup}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo_eye.png';
 
 function Login({ setPage }) {
   const [id, setId] = useState('');
@@ -38,7 +38,7 @@ function Login({ setPage }) {
         <img
           src={logo}
           alt="logo"
-          style={{ width: 32, height: 32, marginRight: 8 }}
+          style={{ width: 55, height: 33, marginRight: 8 }}
         />
         <div style={{ fontSize: 24, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
       </div>
