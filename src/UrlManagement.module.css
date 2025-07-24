@@ -1,0 +1,134 @@
+/* UrlManagement.module.css - Responsive Design */
+
+/* 콘텐츠를 감싸는 메인 컨테이너 */
+.contentWrapper {
+  flex-grow: 1;
+  margin-left: 260px; /* 사이드바 너비 */
+  padding: 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 콘텐츠를 수평 중앙에 배치 */
+  gap: 3rem; /* 헤더와 목록 사이의 간격 */
+}
+
+/* 페이지 제목 헤더 */
+.mainHeader {
+  width: 100%;
+  max-width: 1100px; /* 콘텐츠 최대 너비 */
+  box-sizing: border-box;
+}
+
+.mainTitle {
+  margin: 0;
+  color: #054071;
+  font-family: 'Inter';
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: #1393DB;
+  font-family: 'Inter';
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* URL 목록 컨테이너 */
+.urlListContainer {
+  width: 100%;
+  max-width: 1100px; /* 콘텐츠 최대 너비 */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* URL 아이템 사이의 간격 */
+}
+
+/* 개별 URL 아이템 */
+.urlItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1px #054071 solid;
+  transition: background-color 0.2s;
+}
+
+.urlItem:hover {
+  background-color: #f8f9fa;
+}
+
+.urlText {
+  flex-grow: 1;
+  color: #333;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 글자가 길면 ... 으로 표시 */
+  margin-right: 1.5rem; /* 버튼과의 간격 */
+}
+
+.deleteButton {
+  padding: 8px 16px;
+  background: #F45F5F;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+.deleteButton:hover {
+  background: #d9534f;
+}
+
+/* 화면 너비가 768px 이하일 때 적용될 모바일 스타일 */
+@media (max-width: 768px) {
+  .contentWrapper {
+    margin-left: 0;
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+
+  .mainTitle {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .urlListContainer {
+    gap: 1rem;
+  }
+
+  .urlItem {
+    flex-direction: column; /* 세로로 쌓음 */
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .urlText {
+    white-space: normal; /* 모바일에서는 여러 줄로 표시 */
+    overflow: visible;
+    text-overflow: clip;
+    margin-right: 0;
+    width: 100%;
+    word-break: break-all; /* 긴 URL이 영역을 벗어나지 않도록 단어 단위로 줄바꿈 */
+  }
+
+  .deleteButton {
+    width: 100%; /* 버튼 너비를 꽉 채움 */
+    height: 44px;
+  }
+}

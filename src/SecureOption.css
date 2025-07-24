@@ -1,0 +1,163 @@
+/* src/SecureOption.css */
+
+.secure-page-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: white;
+  display: flex;
+}
+
+.secure-content-wrapper {
+  flex-grow: 1;
+  margin-left: 260px;
+  padding: 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.secure-main-content {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+}
+
+.secure-main-title {
+  margin: 0;
+  color: #054071;
+  font-size: 48px;
+  font-weight: 600;
+  transition: font-size 0.2s ease-in-out;
+}
+
+.secure-subtitle {
+  margin-top: 0.5rem;
+  color: #1393DB;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.secure-options-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.secure-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1.5rem;
+}
+
+.secure-options-container .secure-option-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.secure-option-title {
+  color: #054071;
+  font-size: 32px;
+  font-weight: 600;
+  transition: font-size 0.2s ease-in-out;
+}
+
+.secure-toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.secure-toggle-label {
+  color: #054071;
+  font-family: 'Roboto';
+  font-size: 32px;
+  font-weight: 500;
+  transition: font-size 0.2s ease-in-out;
+}
+
+.secure-toggle-label.inactive {
+  opacity: 0.5;
+}
+
+.secure-toggle-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.secure-toggle-box.selected {
+  background: #054071;
+  border: 1px #054071 solid;
+}
+
+.secure-toggle-box.unselected {
+  background: white;
+  border: 1px #054071 solid;
+}
+
+.secure-save-button {
+  width: 100%;
+  max-width: 900px;
+  height: 48px;
+  background: #1171C0;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .secure-content-wrapper {
+    margin-left: 0;
+    padding: 1.5rem;
+    gap: 2.5rem;
+  }
+
+  .secure-main-title {
+    font-size: 32px;
+  }
+
+  .secure-subtitle {
+    font-size: 14px;
+  }
+
+  .secure-options-container {
+    gap: 2rem;
+  }
+
+  .secure-option-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .secure-option-title {
+    font-size: 20px;
+  }
+
+  .secure-toggle-label {
+    font-size: 20px;
+  }
+
+  .secure-toggle-box {
+    width: 30px;
+    height: 30px;
+  }
+
+  .secure-save-button {
+    height: 44px;
+  }
+}
