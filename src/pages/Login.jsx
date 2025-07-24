@@ -1,42 +1,33 @@
-// src/pages/Login.jsx (선택적 수정 - api.js 사용하도록 통일)
+// src/pages/Login.jsx
 
 import React, { useState } from 'react';
-import logo from '../assets/logo_eye.png';
-// import axios from 'axios'; // axios 직접 임포트 대신 api 모듈 사용 권장
-import api from '../api'; // api 모듈 임포트
-
-// 백엔드 API 기본 URL은 api.js에서 관리 (여기서는 삭제)
-// const API_URL = 'http://127.0.0.1:8000'; 
+import logo from '../assets/logo_eye.png'; // Signin 페이지와 동일한 로고 사용
+import api from '../api';
 
 function Login({ setPage }) {
-  const [id, setId] = useState(''); // 백엔드 스키마상 'email'
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
-  // 로그인 로직 (API 연동)
+  // 백엔드와 연동된 로그인 기능은 그대로 유지합니다.
   const handleLogin = async () => {
-    // 백엔드의 로그인 API는 Form 데이터를 요구함
     const formData = new FormData();
-    formData.append('username', id); // 'username' 필드에 id(이메일)를 담음
+    formData.append('username', id);
     formData.append('password', password);
 
     try {
-      // api 모듈을 통해 로그인 요청 (headers 설정은 api.js에서 처리)
       const response = await api.post('/api/v1/auth/login', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
 
-      // 로그인 성공 시 토큰을 localStorage에 저장
       const token = response.data.access_token;
       if (token) {
         localStorage.setItem('token', token);
-        setPage('Home'); // 홈 페이지로 이동
+        setPage('Home');
       }
-
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        // 백엔드에서 보낸 에러 메시지 사용
         alert(error.response.data.detail);
       } else {
         alert('로그인 중 오류가 발생했습니다.');
@@ -45,8 +36,8 @@ function Login({ setPage }) {
     }
   };
 
+  // --- 아래 return 안의 JSX 부분을 Signin.jsx 디자인에 맞춰 수정했습니다 ---
   return (
-    // ... 기존 JSX 코드 (디자인 변경 없음)
     <div
       style={{
         width: '100vw',
@@ -60,20 +51,27 @@ function Login({ setPage }) {
         color: '#054071',
       }}
     >
-      {/* 로고 및 타이틀 */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 40 }}>
+      {/* 로고 및 타이틀 (Signin.jsx와 동일한 스타일 적용) */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
         <img
           src={logo}
           alt="logo"
-          style={{ width: 50, height: 30, marginRight: 8 }}
+          style={{ width: 53, height: 33, marginRight: 8 }}
         />
-        <div style={{ fontSize: 32, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
+        <div style={{ fontSize: 24, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
       </div>
 
+      {/* 로그인 안내 */}
+      <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>로그인</h2>
+      <p style={{ fontSize: 14, marginTop: 4, marginBottom: 20 }}>
+        ID와 Password를 입력하세요.
+      </p>
+
+      {/* 로그인 폼 */}
       <div style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input
-          type="email" // type을 email로 변경
-          placeholder="ID (Email)"
+          type="text"
+          placeholder="ID"
           value={id}
           onChange={(e) => setId(e.target.value)}
           style={{
@@ -119,7 +117,7 @@ function Login({ setPage }) {
         아직 계정이 없으신가요?{' '}
         <span
           onClick={() => setPage('signin')}
-          style={{ color: '#1171C0', cursor: 'pointer', fontWeight: 500 }}
+          style={{ color: '#1171C0', textDecoration: 'underline', cursor: 'pointer' }}
         >
           회원가입
         </span>
