@@ -1,3 +1,5 @@
+# app/crud.py
+
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import app.models as models
@@ -35,10 +37,21 @@ def create_protection(db: Session, user_id: int, prot: schemas.ProtectionCreate)
     db.add(db_prot); db.commit(); db.refresh(db_prot)
     return db_prot
 
-def delete_protection(db: Session, prot_id: int):
-    prot = db.query(models.ProtectionSetting).get(prot_id)
-    if prot:
-        db.delete(prot); db.commit()
+def delete_protection_by_id_and_owner(db: Session, prot_id: int, user_id: int):
+    """
+    ID와 소유자 ID가 모두 일치하는 보호 설정을 찾아서 삭제합니다.
+    성공적으로 삭제하면 True, 대상이 없으면 False를 반환합니다.
+    """
+    prot_to_delete = db.query(models.ProtectionSetting).filter(
+        models.ProtectionSetting.id == prot_id,
+        models.ProtectionSetting.user_id == user_id
+    ).first()
+
+    if prot_to_delete:
+        db.delete(prot_to_delete)
+        db.commit()
+        return True  # 삭제 성공
+    return False # 삭제할 대상 없음
 
 def create_url_event(db: Session, user_id: int, evt: schemas.UrlEventCreate):
     db_evt = models.UrlEvent(

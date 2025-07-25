@@ -1,51 +1,50 @@
 # app/routers/ai.py
 
-from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form
+from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers.auth import get_current_user
-import numpy as np
-import cv2
+import app.schemas as schemas
 
-# --- AI 감지 모듈 임포트 ---
-# 🔽 여기서 함수 이름을 올바르게 수정했습니다.
-from app.detection.face_register import register_face_from_image
-from app.detection.gaze_tracker import get_gaze_status
+# --- 🔽 여기가 수정된 부분입니다 ---
+# 잘못된 함수 이름(register_face_from_image)을 올바른 이름으로 변경합니다.
+from app.detection.face_register import register_user_face
+from app.detection.gaze_tracker import analyze_frame_for_gaze
 
 router = APIRouter()
 
 @router.post("/register-face")
 async def register_face_endpoint(
+    current_user: schemas.UserOut = Depends(get_current_user),
     file: UploadFile = File(...),
-    current_user=Depends(get_current_user)
+    name: str = Form(...) # 프론트엔드에서 보낸 'name' 값
 ):
-    """웹캠에서 캡처한 이미지로 얼굴을 등록합니다."""
-    image_bytes = await file.read()
-    # 🔽 여기서 함수 이름을 올바르게 수정했습니다.
-    result = register_face_from_image(image_bytes)
-    
-    if result["status"] == "error":
-        raise HTTPException(status_code=400, detail=result["message"])
-    return result
+    """
+    웹캠 이미지를 받아 사용자의 얼굴을 등록합니다.
+    """
+    try:
+        image_bytes = await file.read()
+        # 사용자 ID를 전달하여 개인별 데이터를 저장하도록 합니다.
+        register_user_face(image_bytes=image_bytes, user_id=str(current_user.id))
+        return {"message": f"'{name}' 님의 얼굴이 성공적으로 등록되었습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.post("/detect-frame")
 async def detect_frame_endpoint(
-    file: UploadFile = File(...),
-    current_user=Depends(get_current_user)
+    current_user: schemas.UserOut = Depends(get_current_user),
+    file: UploadFile = File(...)
 ):
-    """실시간 웹캠 프레임을 분석하여 상태를 반환합니다."""
-    image_bytes = await file.read()
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    if frame is None:
-        raise HTTPException(status_code=400, detail="Invalid image data")
-
-    # 참고: 현재는 사용자별 모델 경로를 구분하지 않음 (모든 유저가 동일 파일 공유)
-    # 추후 다중 사용자를 지원하려면 사용자 ID별로 경로를 관리해야 함
-    USER_FACE_PATH = "app/models/user_face.npy"
-    GAZE_REF_PATH = "app/models/user_eye_pos.npy"
-
-    status, intrusion = get_gaze_status(frame, USER_FACE_PATH, GAZE_REF_PATH)
-
-    return {"status": status, "intrusion": intrusion}
+    """
+    실시간 웹캠 프레임을 받아 분석하고 상태를 반환합니다.
+    """
+    try:
+        image_bytes = await file.read()
+        # 사용자 ID를 전달하여 개인별 데이터를 사용하도록 합니다.
+        status = analyze_frame_for_gaze(image_bytes=image_bytes, user_id=str(current_user.id))
+        return {"status": status}
+    except Exception as e:
+        # 실제 운영 환경에서는 더 구체적인 에러 처리가 필요합니다.
+        # print(f"Detection error: {e}") # 디버깅용
+        return {"status": "error"}

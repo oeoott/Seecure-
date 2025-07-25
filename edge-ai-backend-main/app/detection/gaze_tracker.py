@@ -1,64 +1,112 @@
-# detection/gaze_tracker.py
+# app/detection/gaze_tracker.py
+
+import cv2
 import numpy as np
 import os
-# 🔽 intrusion_detector의 함수를 직접 import하지 않습니다.
-# from app.detection.intrusion_detector import detect_intrusion
+import time
+from typing import Optional, Tuple
 
-# 🔽 모델을 전역 변수로 선언만 해둡니다. (Lazy Loading)
-face_mesh = None
+# --- 지연 로딩을 위한 전역 변수 ---
+_face_mesh = None
+_tracker_instances = {} # 사용자별 GazeTracker 인스턴스 저장
 
-def get_face_mesh():
-    """MediaPipe FaceMesh 모델을 필요할 때 딱 한 번만 로드하는 함수"""
-    import mediapipe as mp
-    global face_mesh
-    if face_mesh is None:
+def get_face_mesh_instance():
+    """MediaPipe Face Mesh를 지연 로딩하여 반환합니다."""
+    global _face_mesh
+    if _face_mesh is None:
         print("[INFO] Loading MediaPipe Face Mesh for gaze tracking...")
-        mp_face_mesh = mp.solutions.face_mesh
-        face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True)
-    return face_mesh
+        import mediapipe as mp
+        _face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True)
+    return _face_mesh
 
-def get_gaze_status(frame, user_face_path: str, gaze_ref_path: str):
-    """API로부터 받은 이미지 프레임으로 시선 및 침입 상태를 분석하는 함수"""
-    import cv2
-    # 🔽 함수 내부에서 import 합니다.
-    from app.detection.intrusion_detector import detect_intrusion
+# --- 로직을 클래스로 캡슐화 ---
+class GazeTracker:
+    def __init__(self, user_id: str):
+        self.user_id = user_id
+        self.ref_point = None
+        self.ref_vec = None
+        self.face_mesh = get_face_mesh_instance()
 
-    try:
-        mesh = get_face_mesh() # 🔽 API가 호출될 때 모델 로드
-        ref_point = np.load(gaze_ref_path) if os.path.exists(gaze_ref_path) else None
+        user_data_dir = f"app/models/{self.user_id}"
+        ref_path = os.path.join(user_data_dir, "user_eye_pos.npy")
 
-        intrusion = detect_intrusion(frame, user_face_path)
-        
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = mesh.process(rgb_frame)
-
-        # 얼굴이 감지되지 않았을 때의 처리
-        if not results.multi_face_landmarks:
-            # 침입자가 있다면 침입 상태 반환, 없다면 얼굴 없음 상태 반환
-            return "INTRUSION_DETECTED" if intrusion else "NO_FACE_DETECTED", intrusion
-
-        landmarks = results.multi_face_landmarks[0].landmark
-        h, w, _ = frame.shape
-        
-        # 시선 계산
-        left_iris_pos = (landmarks[473].x * w, landmarks[473].y * h)
-        right_iris_pos = (landmarks[468].x * w, landmarks[468].y * h)
-        eye_center = (np.array(left_iris_pos) + np.array(right_iris_pos)) / 2
-        
-        is_gaze_forward = True # 기본값을 True로 설정
-        if ref_point is not None:
-            distance = np.linalg.norm(eye_center - ref_point)
-            if distance > 30: 
-                is_gaze_forward = False
-
-        # 최종 상태 결정
-        if intrusion:
-            return "INTRUSION_DETECTED", True
-        elif not is_gaze_forward:
-            return "GAZE_AWAY", False
+        if os.path.exists(ref_path):
+            self.ref_point = np.load(ref_path)
         else:
-            return "USER_FOCUSED", False
-            
-    except Exception as e:
-        print(f"Error during gaze tracking: {e}")
-        return "ERROR", False
+            print(f"[WARN] User {user_id}: Gaze reference point not found.")
+
+    def get_eye_center_and_vector(self, landmarks, image_shape):
+        h, w = image_shape[:2]
+        # MediaPipe v0.9+ iris landmark indices
+        left_iris_idx, right_iris_idx = 473, 468
+        
+        left = np.array([landmarks[left_iris_idx].x * w, landmarks[left_iris_idx].y * h])
+        right = np.array([landmarks[right_iris_idx].x * w, landmarks[right_iris_idx].y * h])
+        
+        eye_center = (left + right) / 2
+        nose = np.array([landmarks[1].x * w, landmarks[1].y * h])
+        gaze_vector = eye_center - nose
+        return eye_center, gaze_vector, nose
+
+    def is_gaze_forward(self, landmarks, image_shape, angle_threshold=25):
+        if self.ref_point is None:
+            return False, "No reference"
+
+        eye_center, current_vec, nose = self.get_eye_center_and_vector(landmarks, image_shape)
+        
+        if self.ref_vec is None:
+            self.ref_vec = self.ref_point - nose
+
+        if np.linalg.norm(current_vec) == 0 or np.linalg.norm(self.ref_vec) == 0:
+            return False, "Zero vector"
+
+        cos_theta = np.dot(self.ref_vec, current_vec) / (np.linalg.norm(self.ref_vec) * np.linalg.norm(current_vec))
+        angle = np.degrees(np.arccos(np.clip(cos_theta, -1.0, 1.0)))
+        
+        return angle < angle_threshold, f"Angle: {angle:.1f}"
+
+
+# --- API가 호출할 최종 함수 ---
+def analyze_frame_for_gaze(image_bytes: bytes, user_id: str) -> str:
+    """
+    이미지 바이트와 사용자 ID를 받아 시선 및 침입 상태를 분석하고 결과를 문자열로 반환합니다.
+    """
+    global _tracker_instances
+    from app.detection.intrusion_detector import detect_intrusion # 지연 임포트
+
+    if user_id not in _tracker_instances:
+        _tracker_instances[user_id] = GazeTracker(user_id)
+    
+    tracker = _tracker_instances[user_id]
+    
+    frame = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
+    if frame is None:
+        return "decoding_error"
+
+    # 1. 타인(침입자) 감지
+    is_intrusion, num_faces = detect_intrusion(frame, user_id)
+
+    # 2. 시선 추적
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = tracker.face_mesh.process(rgb_frame)
+    
+    user_present = False
+    gaze_forward = False
+
+    if results.multi_face_landmarks:
+        # 이 예제에서는 가장 큰 얼굴을 사용자로 가정하거나,
+        # 얼굴 비교 로직을 추가하여 실제 사용자를 식별해야 합니다.
+        # 지금은 첫 번째 감지된 얼굴을 기준으로 합니다.
+        user_present = True
+        landmarks = results.multi_face_landmarks[0].landmark
+        gaze_forward, reason = tracker.is_gaze_forward(landmarks, frame.shape)
+
+    # 3. 최종 상태 결정
+    if is_intrusion:
+        return "intrusion_detected" # 타인이 있으면 최우선으로 알림
+    if not user_present and num_faces == 0:
+        return "no_one_detected" # 아무도 없으면
+    if not gaze_forward:
+        return "gaze_distracted" # 사용자는 있지만 시선이 이탈한 경우
+    
+    return "user_focused" # 사용자가 정면을 보고 있는 정상 상태
