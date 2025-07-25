@@ -35,7 +35,7 @@ def create_access_token(data: dict, expires: timedelta = None):
 @router.post("/signup", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
 def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, user_in.email):
-        raise HTTPException(400, "이미 등록된 이메일입니다")
+        raise HTTPException(400, "이미 등록된 ID입니다")
     return crud.create_user(db, user_in)
 
 # ⭐️ 경로 수정: "/login"
@@ -43,7 +43,7 @@ def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form.username, form.password)
     if not user:
-        raise HTTPException(401, "이메일 또는 비밀번호가 올바르지 않습니다")
+        raise HTTPException(401, "ID 또는 비밀번호가 올바르지 않습니다")
     token = create_access_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
 

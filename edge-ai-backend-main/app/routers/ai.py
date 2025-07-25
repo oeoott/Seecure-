@@ -1,50 +1,65 @@
 # app/routers/ai.py
 
-from fastapi import APIRouter, File, UploadFile, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers.auth import get_current_user
+import app.crud as crud
 import app.schemas as schemas
+import os
 
-# --- 🔽 여기가 수정된 부분입니다 ---
-# 잘못된 함수 이름(register_face_from_image)을 올바른 이름으로 변경합니다.
+# --- 🔽 AI 모듈 import ---
+# 시선 추적 기능이 제거되었으므로 gaze_tracker는 더 이상 import하지 않습니다.
+from app.detection.intrusion_detector import detect_intrusion
 from app.detection.face_register import register_user_face
-from app.detection.gaze_tracker import analyze_frame_for_gaze
 
 router = APIRouter()
 
-@router.post("/register-face")
-async def register_face_endpoint(
-    current_user: schemas.UserOut = Depends(get_current_user),
-    file: UploadFile = File(...),
-    name: str = Form(...) # 프론트엔드에서 보낸 'name' 값
-):
-    """
-    웹캠 이미지를 받아 사용자의 얼굴을 등록합니다.
-    """
-    try:
-        image_bytes = await file.read()
-        # 사용자 ID를 전달하여 개인별 데이터를 저장하도록 합니다.
-        register_user_face(image_bytes=image_bytes, user_id=str(current_user.id))
-        return {"message": f"'{name}' 님의 얼굴이 성공적으로 등록되었습니다."}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# 사용자별 데이터 저장을 위한 기본 경로 설정
+DATA_BASE_PATH = "user_data"
+os.makedirs(DATA_BASE_PATH, exist_ok=True)
 
+@router.post("/register-face")
+async def api_register_face(
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    db: Session = Depends(get_db),
+    current_user: schemas.UserOut = Depends(get_current_user)
+):
+    user_id = current_user.id
+    # 사용자별 폴더 생성
+    user_folder = os.path.join(DATA_BASE_PATH, str(user_id))
+    os.makedirs(user_folder, exist_ok=True)
+    
+    user_face_path = os.path.join(user_folder, "user_face.npy")
+    
+    image_bytes = await file.read()
+
+    # 얼굴 등록 시도
+    success, message = register_user_face(image_bytes, user_face_path)
+
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+
+    # DB에 얼굴 정보 저장
+    face_data = schemas.FaceCreate(label=name, image_url=user_face_path)
+    crud.create_face(db, user_id=user_id, face=face_data)
+    
+    # --- 🔽 TypeError가 발생한 부분을 수정 ---
+    # register_user_face가 반환하는 튜플의 두 번째 값(message)을 사용합니다.
+    return {"message": message}
 
 @router.post("/detect-frame")
-async def detect_frame_endpoint(
-    current_user: schemas.UserOut = Depends(get_current_user),
-    file: UploadFile = File(...)
+async def api_detect_frame(
+    file: UploadFile = File(...),
+    current_user: schemas.UserOut = Depends(get_current_user)
 ):
-    """
-    실시간 웹캠 프레임을 받아 분석하고 상태를 반환합니다.
-    """
-    try:
-        image_bytes = await file.read()
-        # 사용자 ID를 전달하여 개인별 데이터를 사용하도록 합니다.
-        status = analyze_frame_for_gaze(image_bytes=image_bytes, user_id=str(current_user.id))
-        return {"status": status}
-    except Exception as e:
-        # 실제 운영 환경에서는 더 구체적인 에러 처리가 필요합니다.
-        # print(f"Detection error: {e}") # 디버깅용
-        return {"status": "error"}
+    user_id = current_user.id
+    user_folder = os.path.join(DATA_BASE_PATH, str(user_id))
+    user_face_path = os.path.join(user_folder, "user_face.npy")
+
+    image_bytes = await file.read()
+    
+    # --- 🔽 gaze_tracker를 사용하지 않고 intrusion_detector를 직접 호출 ---
+    result = detect_intrusion(image_bytes, user_face_path)
+    return result
