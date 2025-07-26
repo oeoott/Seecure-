@@ -1,6 +1,10 @@
 # SeeCure: AI 기반 실시간 화면 정보 보호 솔루션
 
 ![SeeCure Logo](https://placehold.co/600x150/054071/FFFFFF?text=SeeCure&font=inter)
+<p align="center">
+<img src="assets/logo.png" alt="SeeCure Logo" width="50" style="vertical-align:middle; margin-right: 15px;">
+<span style="font-size: 2.5em; font-weight: bold; vertical-align:middle; color: #054071;">SeeCure</span>
+</p>
 
 **SeeCure**는 공공장소나 사무실 등 개방된 환경에서 사용자의 민감한 정보가 타인에게 노출되는 것을 방지하는 지능형 보안 솔루션입니다. 웹캠과 AI 얼굴 인식 기술을 활용하여, 등록되지 않은 사용자의 얼굴이 인식될 경우 실시간으로 화면 보호 조치(블러, 경고 팝업)를 실행합니다.
 
