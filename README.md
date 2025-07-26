@@ -8,12 +8,12 @@
 
 ## 팀원 정보
 
-| 이름 | 역할 | 이메일 주소 |
-| :--- | :--- | :--- |
-| 오지원 | 팀 대표, 데이터 분석, 백엔드 개발 | gildong.hong@example.com |
-| 구나은 | 프론트엔드 개발, UI/UX | 1002naeun@gmail.com |
-| 임수정 | 프론트엔드 개발, UI/UX | asdlatnwjd@gmail.com |
-| 이연우 | AI 모델 개발 | kiterainlee@gmail.com |
+| 이름 | 역할 | 이메일 주소 | 퀄컴 ID |
+| :--- | :--- | :--- | :--- |
+| 오지원 | 팀 대표, 데이터 베이스 구조, 백엔드 개발 | ojiwon58@gmail.com | ohjiwon3@naver.com |
+| 구나은 | 프론트엔드 개발, UI/UX | 1002naeun@gmail.com | 1002naeun@gmail.com |
+| 임수정 | 프론트엔드 개발, UI/UX | asdlatnwjd@gmail.com | Asdlatnwjd@gmail.com |
+| 이연우 | AI 모델 개발 | kiterainlee@gmail.com | kiterainlee@gmail.com |
 
 ---
 
