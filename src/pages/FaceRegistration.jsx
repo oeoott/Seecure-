@@ -17,8 +17,16 @@ const FaceRegistration = ({ setPage }) => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setIsCameraOn(true);
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = async () => {
+              try {
+                await videoRef.current.play();
+                setIsCameraOn(true);
+                console.log("[성공] 카메라 연결 성공");
+              } catch (err) {
+                console.error("[실패] video play() 실패", err);
+              }
+            };
         }
       } catch (err) {
         console.error("Error accessing camera: ", err);

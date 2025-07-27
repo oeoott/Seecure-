@@ -18,6 +18,7 @@ dist-ssr/
 # Python 가상환경 (중요)
 venv/
 .venv/
+venv310/
 
 # Python 캐시 파일
 __pycache__/

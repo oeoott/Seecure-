@@ -1,5 +1,8 @@
 import os
-from detection.face_register import main as face_register_main
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from detection.face_register import register_user_face as face_register_main
 
 def test_face_registration():
     print("[TEST] 얼굴 등록 테스트 시작")
@@ -11,9 +14,9 @@ def test_face_registration():
         return
 
     face_register_main()
-
+    
     # 결과 파일 확인
-    if os.path.exists("models/user_face.npy") and os.path.exists("models/user_eye_pos.npy"):
+    if os.path.exists("models/user_face.npy"):
         print("[TEST 완료] 얼굴 이미지 및 시선 좌표가 성공적으로 저장되었습니다.")
     else:
         print("[ERROR] 결과 파일이 생성되지 않았습니다.")

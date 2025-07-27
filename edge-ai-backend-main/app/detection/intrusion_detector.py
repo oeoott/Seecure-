@@ -1,79 +1,150 @@
-# app/detection/intrusion_detector.py
-
-import os
+import cv2
 import numpy as np
+import os
+import onnxruntime as ort
+import time
 
-# --- 🔽 라이브러리들을 함수 내부로 옮겨 지연 로딩을 유지합니다 ---
 
-def get_user_face(user_face_path):
-    """사용자 얼굴 데이터를 불러옵니다."""
-    try:
-        if not os.path.exists(user_face_path):
-            return None
-        return np.load(user_face_path)
-    except Exception as e:
-        print(f"[ERROR] 사용자 얼굴 데이터 로딩 실패: {e}")
-        return None
+# 모델 및 경로 설정
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+YOLO_MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "yolov8n-face.onnx")
+YOLO_MODEL_PATH = os.path.normpath(YOLO_MODEL_PATH)  # 윈도우 경로 정리
 
-def is_same_person(face1_gray, face2_gray, threshold=55):
-    """두 흑백 얼굴 이미지가 동일인물인지 비교합니다."""
-    if face1_gray is None or face2_gray is None:
+USER_FACE_PATH = os.path.join(BASE_DIR, "..", "models", "user_face.npy")
+USER_FACE_PATH = os.path.normpath(USER_FACE_PATH)
+INPUT_SIZE = 640
+
+# ONNX 모델 로드
+onnx_session = ort.InferenceSession(YOLO_MODEL_PATH)
+
+def load_user_face():
+    if not os.path.exists(USER_FACE_PATH):
+        print("[ERROR] 사용자 얼굴 데이터가 없습니다. face_register.py를 먼저 실행하세요.")
+        exit()
+    return np.load(USER_FACE_PATH)
+
+def preprocess_for_onnx(img):
+    img_resized = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE))
+    img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)
+    img_norm = img_rgb.astype(np.float32) / 255.0
+    img_transposed = np.transpose(img_norm, (2, 0, 1))  # CHW
+    img_input = np.expand_dims(img_transposed, axis=0)  # NCHW
+    return img_input, img.shape[:2], (img.shape[1] / INPUT_SIZE, img.shape[0] / INPUT_SIZE)
+
+def detect_faces(frame, conf_threshold=0.5):
+    input_tensor, original_shape, scale = preprocess_for_onnx(frame)
+    ort_inputs = {onnx_session.get_inputs()[0].name: input_tensor}
+    outputs = onnx_session.run(None, ort_inputs)[0]
+
+    if outputs.ndim == 3:
+        outputs = outputs[0]
+
+    boxes = []
+    for det in outputs:
+        if len(det) < 6:
+            continue
+
+        x_c, y_c, w, h = det[0:4]
+        conf = det[4]
+
+        if conf < conf_threshold:
+            continue
+
+        x1 = int((x_c - w / 2) * scale[0])
+        y1 = int((y_c - h / 2) * scale[1])
+        x2 = int((x_c + w / 2) * scale[0])
+        y2 = int((y_c + h / 2) * scale[1])
+
+        h_frame, w_frame = original_shape
+        x1 = max(0, min(w_frame - 1, x1))
+        y1 = max(0, min(h_frame - 1, y1))
+        x2 = max(0, min(w_frame - 1, x2))
+        y2 = max(0, min(h_frame - 1, y2))
+
+        if (x2 - x1) < 30 or (y2 - y1) < 30:
+            continue
+
+        boxes.append([x1, y1, x2, y2])
+
+    return boxes
+
+def detect_intrusion(frame):
+    user_face = load_user_face()
+    boxes = detect_faces(frame)
+
+    user_found = False
+    intruder_found = False
+
+    diffs = []
+
+    for box in boxes:
+        x1, y1, x2, y2 = box
+        cropped = frame[y1:y2, x1:x2]
+        if cropped.size == 0:
+            continue
+
+        try:
+            face_resized = cv2.resize(cropped, (100, 100)).astype("float32")
+        except:
+            continue
+
+        diff = np.mean(np.abs(user_face.astype("float32") - face_resized))
+        diffs.append((diff, box))
+
+        if not diffs:
+            return False
+
+        #사용자로 가장 유사한 얼굴 하나 선택
+        diffs.sort(key=lambda x: x[0]) # 오름차순
+        best_match_diff, best_Box = diffs[0]
+
+        if diff < 50:
+            user_found = True
+        else:
+            intruder_found = True
+
+        # 시각화
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.putText(frame, f"diff: {diff:.1f}", (x1, y1 - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+
+    if user_found and intruder_found:
+        return True
+    elif not user_found and intruder_found:
+        return True
+    else:
         return False
-    
-    # 두 이미지의 크기가 같은지 확인하고, 다르면 face2_gray를 face1_gray 크기에 맞게 조절
-    if face1_gray.shape != face2_gray.shape:
-        face2_gray = __import__('cv2').resize(face2_gray, (face1_gray.shape[1], face1_gray.shape[0]))
 
-    diff = np.mean(np.abs(face1_gray.astype("float32") - face2_gray.astype("float32")))
-    return diff < threshold
+def main():
+    print("[INFO] 침입자 감지 시스템 시작 (ESC로 종료)")
+    cap = cv2.VideoCapture(0)
+    last_log_time = 0
 
-def detect_intrusion(image_bytes, user_face_path):
-    """
-    웹캠 프레임에서 침입자를 감지합니다.
-    등록되지 않은 얼굴이 한 명이라도 있으면 침입으로 간주합니다.
-    """
-    cv2 = __import__('cv2')
-    from app.detection.utils import get_onnx_session, detect_faces
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            continue
 
-    try:
-        user_face = get_user_face(user_face_path)
-        if user_face is None:
-            # 등록된 얼굴이 없으면 침입 판단을 할 수 없으므로 정상 처리
-            return {"intrusion_detected": False, "status": "User face not registered"}
+        current_time = time.time()
+        if current_time - last_log_time >= 2.0:
+            face_count = len(detect_faces(frame))
+            if face_count == 0:
+                print("[DEBUG] 감지된 얼굴 없음")
+            else: 
+                intrusion = detect_intrusion(frame)
+                if intrusion:
+                    print("[경고] 타인 감지됨")
+                else:
+                    print("[정상] 사용자만 탐지됨")
+                print(f"[DEBUG] 감지된 얼굴 수: {face_count}")
+            last_log_time = current_time
 
-        # 이미지를 디코딩하여 OpenCV 형식으로 변환
-        np_arr = np.frombuffer(image_bytes, np.uint8)
-        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        if frame is None:
-            return {"intrusion_detected": False, "status": "Invalid image frame"}
+        cv2.imshow("Intrusion Detection", frame)
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
 
-        onnx_session = get_onnx_session()
-        boxes = detect_faces(onnx_session, frame)
+    cap.release()
+    cv2.destroyAllWindows()
 
-        # 1. 아무 얼굴도 감지되지 않으면 정상
-        if not boxes:
-            return {"intrusion_detected": False, "status": "No face detected"}
-
-        # 2. 감지된 모든 얼굴을 검사
-        for box in boxes:
-            x1, y1, x2, y2 = box
-            cropped_face = frame[y1:y2, x1:x2]
-
-            if cropped_face.size == 0:
-                continue
-
-            # 비교를 위해 흑백으로 변환
-            cropped_face_gray = cv2.cvtColor(cropped_face, cv2.COLOR_BGR2GRAY)
-            
-            # --- 🔽 핵심 로직: 등록된 얼굴과 다른 사람이 한 명이라도 있는가? ---
-            if not is_same_person(user_face, cropped_face_gray):
-                # 등록되지 않은 얼굴을 발견했으므로 즉시 "침입"으로 판단하고 종료
-                return {"intrusion_detected": True, "status": "Intrusion detected"}
-
-        # 3. 루프가 모두 끝났다면, 감지된 모든 얼굴이 등록된 사용자였음을 의미 -> 정상
-        return {"intrusion_detected": False, "status": "User verified"}
-
-    except Exception as e:
-        print(f"[ERROR] Exception in detect_intrusion: {e}")
-        # 예외 발생 시 안전하게 "정상"으로 처리
-        return {"intrusion_detected": False, "status": f"Error: {e}"}
+if __name__ == "__main__":
+    main()

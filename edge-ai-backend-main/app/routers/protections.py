@@ -24,7 +24,7 @@ def remove_protection(prot_id: int, current_user=Depends(get_current_user), db: 
     """
     현재 로그인된 사용자가 소유한 보호 설정을 삭제합니다.
     """
-    deleted = crud.delete_protection_by_id_and_owner(db, prot_id=prot_id, user_id=current_user.id)
+    deleted = crud.delete_protection_by_user(db, prot_id=prot_id, user_id=current_user.id)
     
     # crud 함수가 False를 반환했다면 (삭제 대상이 없거나 권한이 없는 경우)
     if not deleted:

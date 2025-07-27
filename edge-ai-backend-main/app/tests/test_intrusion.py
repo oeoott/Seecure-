@@ -1,4 +1,8 @@
 # test_intrusion.py
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from detection.intrusion_detector import main as intrusion_main
 
 def test_intrusion_detection():
