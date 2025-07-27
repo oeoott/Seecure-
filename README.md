@@ -65,90 +65,108 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 
 ## 빌드 및 설치 방법
 
-### 사전 준비
+### 0단계: 사전 준비
 
 아래 프로그램들이 PC에 반드시 설치되어 있어야 합니다.
 
-* [Git](https://git-scm.com/downloads)
-* [Python](https://www.python.org/downloads/) (3.9 이상 버전)
-* [Node.js](https://nodejs.org/en) (18.x 이상 버전)
-* [PostgreSQL](https://www.postgresql.org/download/) (데이터베이스)
+* **Git**: [공식 사이트](https://git-scm.com/downloads)에서 다운로드하여 설치합니다.
+* **Node.js**: [공식 사이트](https://nodejs.org/en)에서 **LTS 버전**을 다운로드하여 설치합니다.
+* **Python**: [공식 사이트](https://www.python.org/downloads/)에서 최신 버전을 다운로드하여 설치합니다.
+    * **(매우 중요)** 설치 첫 화면에서 **`Add python.exe to PATH`** 체크박스를 반드시 클릭해야 합니다.
+* **PostgreSQL**: [공식 사이트](https://www.postgresql.org/download/)에서 다운로드하여 설치합니다.
+    * 설치 중 비밀번호를 설정하는 화면이 나옵니다. 이 비밀번호를 꼭 기억해주세요.
+* **Visual Studio Code**: [공식 사이트](https://code.visualstudio.com/)에서 다운로드하여 설치하고, **Python 확장 프로그램**을 설치합니다.
 
-### 1. 프로젝트 복제
+---
 
-```bash
-git clone [https://github.com/oeoott/Seecure-.git](https://github.com/oeoott/Seecure-.git)
-cd Seecure-
-```
+### 1단계: 프로젝트 복제 및 열기
 
-### 2. 백엔드 설정
+1.  원하는 위치에 프로젝트를 복제(다운로드)합니다.
+    ```bash
+    git clone [https://github.com/oeoott/Seecure-.git](https://github.com/oeoott/Seecure-.git)
+    ```
+2.  VS Code를 실행하고 `파일 > 폴더 열기`를 통해 방금 복제한 `Seecure-` 폴더를 엽니다.
 
-```bash
-# 1. 백엔드 폴더로 이동합니다.
-cd edge-ai-backend-main
+---
 
-# 2. 파이썬 가상환경을 생성합니다.
-py -m venv venv
-or
-python -m venv venv
+### 2단계: 백엔드 설정 (터미널 1)
 
-# 3. 가상환경을 활성화합니다.
-venv\Scripts\activate
-or
-venv\Scripts\activate.bat
+1.  VS Code에서 새 터미널을 엽니다. (`Ctrl` + `\``)
+2.  백엔드 폴더로 이동합니다.
+    ```powershell
+    cd .\edge-ai-backend-main\
+    ```
+3.  파이썬 가상환경을 생성합니다.
+    ```powershell
+    py -m venv venv
+    ```
+4.  **(PowerShell 사용 시)** 스크립트 실행 권한을 설정합니다. 터미널에 아래 명령어를 입력하고 `Y`를 눌러 허용합니다.
+    ```powershell
+    Set-ExecutionPolicy RemoteSigned -Scope Process
+    ```
+5.  가상환경을 활성화합니다.
+    * **PowerShell**: `.\venv\Scripts\Activate.ps1`
+    * **CMD**: `venv\Scripts\activate`
+    > 활성화에 성공하면 터미널 맨 앞에 `(venv)`가 표시됩니다.
 
-# 4. 필요한 모든 라이브러리를 설치합니다.
-pip install -r requirements.txt
-```
+6.  **(매우 중요) VS Code 파이썬 인터프리터 설정**
+    * 이 작업을 해야 코드에 노란 줄(경고)이 뜨는 것을 막을 수 있습니다.
+    * `Ctrl+Shift+P`를 눌러 명령어 팔레트를 엽니다.
+    * `Python: Select Interpreter`를 검색하고 선택합니다.
+    * `+ Enter interpreter path...`를 클릭하고, 아래 경로의 파일을 직접 선택합니다.
+    * **`./venv/Scripts/python.exe`**
+    * VS Code 창을 새로고침(`Ctrl+Shift+P` -> `Developer: Reload Window`)하면 모든 경고가 사라집니다.
 
-### 3. 데이터베이스 설정
+7.  필요한 모든 라이브러리를 설치합니다.
+    ```powershell
+    pip install -r requirements.txt
+    ```
 
-1.  PC에 설치한 PostgreSQL을 실행합니다.
-2.  `pgAdmin`과 같은 관리 도구를 사용하여 **`edgeai`** 라는 이름의 새 데이터베이스를 생성합니다.
-3.  `edge-ai-backend-main/app/database.py` 파일을 열어, 본인의 PostgreSQL 사용자 이름과 비밀번호에 맞게 `DATABASE_URL`을 수정합니다.
+---
 
-### 4. 프론트엔드 설정
+### 3단계: 데이터베이스 설정
 
-```bash
-# (백엔드 폴더에서 나와) 프로젝트 최상위 폴더로 이동합니다.
-cd ..
+1.  `pgAdmin`을 실행하여 PostgreSQL에 접속합니다.
+2.  좌측 `Databases` 항목을 우클릭하여 `Create > Database...`를 선택합니다.
+3.  `Database` 이름에 **`edgeai`** 라고 입력하고 저장합니다.
+4.  VS Code에서 `edge-ai-backend-main/app/database.py` 파일을 엽니다.
+5.  `DATABASE_URL` 변수의 `user`와 `pw` 부분을 본인이 PostgreSQL 설치 시 설정한 사용자 이름과 비밀번호로 수정합니다.
+    ```python
+    # 예시: 사용자 이름이 postgres이고 비밀번호가 1234인 경우
+    DATABASE_URL = "postgresql://postgres:1234@localhost:5432/edgeai"
+    ```
 
-# 필요한 모든 라이브러리를 설치합니다.
-npm install
-```
+---
+
+### 4단계: 프론트엔드 설정 (터미널 2)
+
+1.  VS Code에서 **또 다른 새 터미널**을 엽니다. (`+` 아이콘 클릭)
+2.  프로젝트의 최상위 폴더(`Seecure-`)에 있는지 확인합니다.
+3.  필요한 라이브러리를 모두 설치합니다.
+    ```powershell
+    npm install
+    ```
 
 ---
 
 ## 실행 및 사용 지침
 
-프로젝트 실행을 위해서는 **백엔드 서버**와 **프론트엔드 서버**를 각각 별도의 터미널에서 실행해야 합니다.
-
 ### 1. 백엔드 서버 시작
 
-```bash
-# (새 터미널 열기)
-# 1. 백엔드 폴더로 이동합니다.
-cd path\to\your\Seecure-\edge-ai-backend-main
-
-# 2. 가상환경을 활성화합니다.
-venv\Scripts\activate
-
-# 3. 서버를 시작합니다.
-uvicorn app.main:app
-```
-> 터미널에 `Uvicorn running on http://127.0.0.1:8000` 메시지가 보이면 성공입니다. 이 터미널은 닫지 말고 그대로 두세요.
+* **터미널 1** (백엔드용)에서 아래 명령어를 실행합니다.
+    ```powershell
+    # 가상환경이 활성화된 상태인지 (venv) 확인
+    uvicorn app.main:app
+    ```
+    > `Uvicorn running on http://127.0.0.1:8000` 메시지가 보이면 성공입니다.
 
 ### 2. 프론트엔드 서버 시작
 
-```bash
-# (또 다른 새 터미널 열기)
-# 1. 프로젝트 최상위 폴더로 이동합니다.
-cd path\to\your\Seecure-
-
-# 2. 프론트엔드 개발 서버를 시작합니다.
-npm run dev
-```
-> 터미널에 `Local:` 옆에 `http://localhost:xxxx` 주소가 나타나면 성공입니다.
+* **터미널 2** (프론트엔드용)에서 아래 명령어를 실행합니다.
+    ```powershell
+    npm run dev
+    ```
+    > `Local:` 옆에 `http://localhost:xxxx` 주소가 나타나면 성공입니다.
 
 ### 3. 브라우저 확장 프로그램 설치
 
