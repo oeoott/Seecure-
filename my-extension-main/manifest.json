@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Seecure AI Popup",
+  "version": "1.0.0",
+  "description": "등록된 URL에서 팝업을 띄워주는 확장",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icon16.png", "48": "icon48.png" }
+  },
+  "permissions": ["activeTab", "scripting"],
+  "content_scripts": [
+    {
+      "matches": ["https://your-registered-url.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
