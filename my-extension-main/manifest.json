@@ -1,17 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "Seecure AI Popup",
-  "version": "1.0.0",
-  "description": "등록된 URL에서 팝업을 띄워주는 확장",
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": { "16": "icon16.png", "48": "icon48.png" }
-  },
-  "permissions": ["activeTab", "scripting"],
+  "name": "Secure Guard",
+  "version": "1.0",
+  "description": "침입자 감지 프로토타입",
+  // content_scripts 자체는 Optional → host_permissions로 호스트 제한
   "content_scripts": [
     {
-      "matches": ["https://your-registered-url.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://siteA.com/*",      // 등록한 사이트 A
+        "https://sub.siteB.io/*",    // 등록한 사이트 B (서브도메인 포함)
+        "https://portal.company.kr/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
+  ],
+  "host_permissions": [
+    "https://siteA.com/*",
+    "https://sub.siteB.io/*",
+    "https://portal.company.kr/*"
+  ],
+  "permissions": [
+    "scripting",
+    "activeTab"
   ]
 }
