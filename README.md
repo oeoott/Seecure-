@@ -89,9 +89,13 @@ cd edge-ai-backend-main
 
 # 2. 파이썬 가상환경을 생성합니다.
 py -m venv venv
+or
+python -m venv venv
 
 # 3. 가상환경을 활성화합니다.
 venv\Scripts\activate
+or
+venv\Scripts\activate.bat
 
 # 4. 필요한 모든 라이브러리를 설치합니다.
 pip install -r requirements.txt
