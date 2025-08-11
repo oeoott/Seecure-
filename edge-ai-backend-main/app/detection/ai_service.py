@@ -137,15 +137,22 @@ class AIService:
                 return True
         return False
 
+    
+    # 침입자 감지 로직
     def detect_intrusion(self, frame: np.ndarray) -> dict:
-        """한 프레임을 받아 침입자(화면 주시) 여부를 판단하여 결과를 반환"""
+        """한 프레임을 받아 침입자 존재 여부를 판단하여 결과를 반환"""
         if self.user_embedding is None:
             return {"error": "User face not registered."}
 
         boxes = self._detect_faces(frame)
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         intruder_alert = False
 
+        # 프레임에 탐지된 얼굴이 한 명이라도 있는지 확인
+        if not boxes:
+            # 아무도 없으면 사용자가 자리를 비운 것이므로 침입자가 아님
+            return {"intruder_alert": False}
+
+        # 탐지된 모든 얼굴에 대해 확인
         for box in boxes:
             x1, y1, x2, y2 = [max(0, val) for val in box]
             if x2 <= x1 or y2 <= y1: continue
@@ -154,9 +161,11 @@ class AIService:
             current_embedding = self._get_face_embedding(face_roi)
             sim = self._cosine_similarity(self.user_embedding, current_embedding)[0][0]
             
-            if sim < self.similarity_threshold: # 임계값보다 낮으면 침입자로 간주
-                if self._get_landmarks_and_gaze(face_roi, frame_gray, box):
-                    intruder_alert = True
-                    break # 화면을 보는 침입자 한 명이라도 찾으면 즉시 종료
-
+            # 🔽 유사도가 임계값보다 낮으면 '침입자'로 간주
+            if sim < self.similarity_threshold:
+                intruder_alert = True
+                # 침입자를 한 명이라도 찾으면 더 이상 확인할 필요 없이 반복 종료
+                break 
+        
+        # 🔽 최종적으로 침입자 발견 여부만 반환
         return {"intruder_alert": intruder_alert}
