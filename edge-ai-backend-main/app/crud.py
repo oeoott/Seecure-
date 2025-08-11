@@ -1,3 +1,5 @@
+# app/crud.py
+
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import app.models as models
@@ -21,8 +23,6 @@ def create_user(db: Session, user: schemas.UserCreate):
 def get_faces_by_user(db: Session, user_id: int):
     return db.query(models.Face).filter(models.Face.user_id == user_id).all()
 
-# --- 🔽 여기가 수정된 부분입니다 ---
-# face 파라미터의 타입을 schemas.FaceCreate로 명확히 지정합니다.
 def create_face(db: Session, user_id: int, face: schemas.FaceCreate):
     db_face = models.Face(user_id=user_id, label=face.label, image_url=face.image_url)
     db.add(db_face)
@@ -30,11 +30,16 @@ def create_face(db: Session, user_id: int, face: schemas.FaceCreate):
     db.refresh(db_face)
     return db_face
 
-def delete_face(db: Session, face_id: int):
-    face = db.query(models.Face).get(face_id)
+def delete_face(db: Session, face_id: int, user_id: int):
+    face = db.query(models.Face).filter(
+        models.Face.id == face_id,
+        models.Face.user_id == user_id
+    ).first()
     if face:
         db.delete(face)
         db.commit()
+        return True
+    return False
 
 # --- Protection CRUD ---
 def get_protections_by_user(db: Session, user_id: int):

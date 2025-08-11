@@ -65,38 +65,43 @@ const FaceRegistration = ({ setPage }) => {
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
+    // --- canvas.toBlob 대신 canvas.toDataURL 사용 ---
+    // 이미지를 Base64 문자열로 변환
+    const base64Image = canvas.toDataURL('image/jpeg');
+    if (!base64Image) {
         alert("이미지 캡처에 실패했습니다.");
-        setIsCapturing(false); // 등록 종료
+        setIsCapturing(false);
         return;
+    }
+
+    // JSON 객체 생성
+    const payload = {
+      name: name, // 사용자가 입력한 이름
+      image: base64Image
+    };
+
+    try {
+      // JSON 객체와 함께 API를 호출 (Content-Type 헤더는 제거)
+      // (api.js에서 'application/json'으로 기본 설정되어 있음)
+      const response = await api.post('/api/v1/ai/register-face', payload);
+      
+      // TODO: 여기서 등록된 얼굴의 이름(name)을 저장하는 별도의 API를 호출할 수 있습니다.
+      // 예: await api.post('/api/v1/faces', { name: name });
+
+      alert(response.data.message || "얼굴 등록 성공");
+      setName('');
+      setPage('FaceManagement');
+
+    } catch (error) {
+      console.error("Signup error:", error);
+      if (error.response?.data?.detail) {
+        alert(`얼굴 등록 실패: ${error.response.data.detail}`);
+      } else {
+        alert('얼굴 등록 중 오류가 발생했습니다.');
       }
-
-      const formData = new FormData();
-      formData.append('file', blob, `${name}.jpg`);
-      formData.append('name', name);
-
-      try {
-        const response = await api.post('/api/v1/ai/register-face', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        alert(response.data.message);
-        setName('');
-        setPage('FaceManagement');
-
-      } catch (error) {
-        console.error("Signup error:", error);
-        if (error.response && error.response.data && error.response.data.detail) {
-          alert(`얼굴 등록 실패: ${error.response.data.detail}`);
-        } else {
-          alert('얼굴 등록 중 오류가 발생했습니다.');
-        }
-      } finally {
-        setIsCapturing(false); // 등록 종료 (성공/실패 무관)
-      }
-    }, 'image/jpeg');
+    } finally {
+      setIsCapturing(false);
+    }
   };
 
   return (

@@ -1,65 +1,90 @@
 # app/routers/ai.py
 
-from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
+from pydantic import BaseModel # ⭐️ 누락되었던 import 구문을 여기에 추가했습니다.
+
+# 🔽 DB 및 인증 관련 모듈 import
 from app.database import get_db
 from app.routers.auth import get_current_user
 import app.crud as crud
 import app.schemas as schemas
-import os
 
-# --- 🔽 AI 모듈 import ---
-# 시선 추적 기능이 제거되었으므로 gaze_tracker는 더 이상 import하지 않습니다.
-from app.detection.intrusion_detector import detect_intrusion
-from app.detection.face_register import register_user_face
+# 🔽 새로운 AI 서비스 및 유틸리티 import
+from app.detection.ai_service import AIService
+import numpy as np
+import cv2
+import base64
 
-router = APIRouter()
+# --- 🔽 API가 받을 데이터 형식 정의 ---
+# 프론트엔드에서 이름과 이미지를 함께 받기 위한 모델
+class FaceRegisterPayload(BaseModel):
+    name: str
+    image: str # base64-encoded string
 
-# 사용자별 데이터 저장을 위한 기본 경로 설정
-DATA_BASE_PATH = "user_data"
-os.makedirs(DATA_BASE_PATH, exist_ok=True)
+# 일반 이미지 요청을 위한 모델
+class ImagePayload(BaseModel):
+    image: str
+
+# --- AI 서비스 인스턴스 생성 ---
+# 서버 시작 시 모델을 한 번만 로드합니다.
+ai_service = AIService()
+
+# --- 라우터 생성 ---
+router = APIRouter(
+    tags=["AI Detection"],
+)
+
+def base64_to_cv2(b64_string: str):
+    """base64 문자열을 OpenCV 이미지(numpy array)로 변환"""
+    if "," in b64_string:
+        b64_string = b64_string.split(',')[1]
+    img_bytes = base64.b64decode(b64_string)
+    img_array = np.frombuffer(img_bytes, dtype=np.uint8)
+    return cv2.imdecode(img_array, flags=cv2.IMREAD_COLOR)
+
 
 @router.post("/register-face")
-async def api_register_face(
-    file: UploadFile = File(...),
-    name: str = Form(...),
+def register_user_face(
+    payload: FaceRegisterPayload,
     db: Session = Depends(get_db),
     current_user: schemas.UserOut = Depends(get_current_user)
 ):
-    user_id = current_user.id
-    # 사용자별 폴더 생성
-    user_folder = os.path.join(DATA_BASE_PATH, str(user_id))
-    os.makedirs(user_folder, exist_ok=True)
-    
-    user_face_path = os.path.join(user_folder, "user_face.npy")
-    
-    image_bytes = await file.read()
+    """
+    Base64 인코딩된 이미지와 이름을 받아 AI 처리 후 DB에 저장합니다.
+    """
+    try:
+        frame = base64_to_cv2(payload.image)
+        success = ai_service.register_face(frame)
+        if not success:
+            raise HTTPException(status_code=400, detail="사진에서 얼굴을 찾을 수 없습니다. 다시 시도해주세요.")
 
-    # 얼굴 등록 시도
-    success, message = register_user_face(image_bytes, user_face_path)
+        face_data = schemas.FaceCreate(label=payload.name, image_url=ai_service.embedding_path)
+        crud.create_face(db=db, user_id=current_user.id, face=face_data)
 
-    if not success:
-        raise HTTPException(status_code=400, detail=message)
+        return {"message": f"'{payload.name}'님의 얼굴이 성공적으로 등록되었습니다."}
 
-    # DB에 얼굴 정보 저장
-    face_data = schemas.FaceCreate(label=name, image_url=user_face_path)
-    crud.create_face(db, user_id=user_id, face=face_data)
-    
-    # --- 🔽 TypeError가 발생한 부분을 수정 ---
-    # register_user_face가 반환하는 튜플의 두 번째 값(message)을 사용합니다.
-    return {"message": message}
+    except Exception as e:
+        print(f"얼굴 등록 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail=f"서버 오류가 발생했습니다: {e}")
 
-@router.post("/detect-frame")
-async def api_detect_frame(
-    file: UploadFile = File(...),
+
+@router.post("/detect")
+def detect_intruders(
+    payload: ImagePayload,
     current_user: schemas.UserOut = Depends(get_current_user)
 ):
-    user_id = current_user.id
-    user_folder = os.path.join(DATA_BASE_PATH, str(user_id))
-    user_face_path = os.path.join(user_folder, "user_face.npy")
+    """
+    Base64 인코딩된 이미지를 받아 침입자(화면 주시) 여부를 반환합니다.
+    """
+    try:
+        if ai_service.user_embedding is None:
+             raise HTTPException(status_code=404, detail="등록된 사용자 얼굴이 없습니다. 먼저 얼굴을 등록해주세요.")
 
-    image_bytes = await file.read()
-    
-    # --- 🔽 gaze_tracker를 사용하지 않고 intrusion_detector를 직접 호출 ---
-    result = detect_intrusion(image_bytes, user_face_path)
-    return result
+        frame = base64_to_cv2(payload.image)
+        result = ai_service.detect_intrusion(frame)
+        if "error" in result:
+             raise HTTPException(status_code=400, detail=result["error"])
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
