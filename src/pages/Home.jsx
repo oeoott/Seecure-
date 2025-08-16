@@ -5,7 +5,6 @@ import Sidebar from './Sidebar.jsx';
 import styles from '../Home.module.css';
 import api from '../api';
 
-// 아이콘 이미지 import
 import userAvatar from '../assets/icon_home_shield.png';
 import faceIdIcon from '../assets/icon_home_face.png';
 import urlIcon from '../assets/icon_home_url.png';
@@ -15,16 +14,22 @@ import alertIcon from '../assets/icon_home_bell.png';
 const Home = ({ setPage }) => {
   const userName = "사용자";
   const [isProtectionOn, setIsProtectionOn] = useState(false);
+
+  // 사용자 설정
   const [isBlurOn, setIsBlurOn] = useState(true);
   const [isPopupOn, setIsPopupOn] = useState(true);
+
+  // 대시보드 수치
   const [faceCount, setFaceCount] = useState(0);
   const [urlCount, setUrlCount] = useState(0);
 
-  // --- 🔽 보호 모드 관련 상태 및 Ref 추가 ---
+  // 캡처/감지
   const videoRef = useRef(null);
   const detectionIntervalRef = useRef(null);
-  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-  // --- 🔼 시선 추적 상태(detectionStatus)는 완전히 제거되었습니다 ---
+
+  // 감지 및 표시 상태(분리!)
+  const [intrusionDetected, setIntrusionDetected] = useState(false);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false); // 실제 블러 표시 여부
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -53,41 +58,58 @@ const Home = ({ setPage }) => {
     if (savedPopup !== null) setIsPopupOn(JSON.parse(savedPopup));
   }, [fetchDashboardData]);
 
-  // --- 🔽 실시간 감지 로직 수정 ---
+  // 침입 감지 → 팝업(사용자 설정을 따름)
+  useEffect(() => {
+    if (intrusionDetected && isPopupOn) {
+      alert('침입자가 감지되었습니다!');
+    }
+  }, [intrusionDetected, isPopupOn]);
+
+  // 침입 감지 또는 블러 설정 변경 시, 오버레이 표시 여부 갱신
+  useEffect(() => {
+    setIsOverlayVisible(intrusionDetected && isBlurOn);
+  }, [intrusionDetected, isBlurOn]);
+
   const startDetection = useCallback(() => {
     if (!videoRef.current || !videoRef.current.srcObject) return;
+    if (detectionIntervalRef.current) return; // 중복 방지
 
     detectionIntervalRef.current = setInterval(async () => {
-      if (videoRef.current && videoRef.current.readyState === 4) {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const v = videoRef.current;
+      if (!v) return;
+      if (v.readyState < 2 || !v.videoWidth) return;
 
-        canvas.toBlob(async (blob) => {
-          if (!blob) return;
-          const formData = new FormData();
-          formData.append('file', blob, 'frame.jpg');
+      const canvas = document.createElement('canvas');
+      canvas.width = v.videoWidth;
+      canvas.height = v.videoHeight;
 
-          try {
-            const response = await api.post('/api/v1/ai/detect-frame', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            
-            // --- 🔽 시선 상태(status) 대신 침입 감지(intrusion_detected)만 확인합니다 ---
-            const intrusionDetected = response.data.intrusion_detected;
-            setIsOverlayVisible(intrusionDetected); // 침입이 감지되면 오버레이 표시
-            
-          } catch (error) {
-            console.error("Frame detection error:", error.response ? error.response.data.detail : error.message);
-            // 에러 발생 시 보호 조치 해제
-            setIsOverlayVisible(false);
-          }
-        }, 'image/jpeg');
-      }
-    }, 1000); // 1초 간격으로 분석
-  }, []);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const formData = new FormData();
+        formData.append('file', blob, 'frame.jpg');
+
+        try {
+          const response = await api.post('/api/v1/ai/detect-frame', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          console.log('[AI] resp:', response.data);
+          const detected = response.data.intruder_alert === true;
+
+          // 1) 침입 감지 상태 저장
+          setIntrusionDetected(detected);
+          // 2) 블러는 사용자 설정을 따름
+          setIsOverlayVisible(detected && isBlurOn);
+        } catch (error) {
+          console.error("Frame detection error:", error.response ? error.response.data : error.message);
+          setIntrusionDetected(false);
+          setIsOverlayVisible(false);
+        }
+      }, 'image/jpeg', 0.9);
+    }, 1000);
+  }, [isBlurOn]);
 
   const stopDetection = useCallback(() => {
     if (detectionIntervalRef.current) {
@@ -96,10 +118,10 @@ const Home = ({ setPage }) => {
     }
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
+      stream.getTracks().forEach(t => t.stop());
       videoRef.current.srcObject = null;
     }
+    setIntrusionDetected(false);
     setIsOverlayVisible(false);
   }, []);
 
@@ -109,9 +131,18 @@ const Home = ({ setPage }) => {
       setIsProtectionOn(false);
     } else {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+
+          await new Promise((res) => {
+            const v = videoRef.current;
+            if (!v) return res();
+            if (v.readyState >= 2 && v.videoWidth) return res();
+            v.onloadedmetadata = () => res();
+          });
+          await videoRef.current.play();
+
           setIsProtectionOn(true);
           startDetection();
         }
@@ -121,33 +152,32 @@ const Home = ({ setPage }) => {
       }
     }
   }, [isProtectionOn, startDetection, stopDetection]);
-  
+
+  // 탭 숨김 시 스트림 반납
+  useEffect(() => {
+    const onHide = () => { if (document.hidden) stopDetection(); };
+    document.addEventListener('visibilitychange', onHide);
+    return () => document.removeEventListener('visibilitychange', onHide);
+  }, [stopDetection]);
+
   return (
     <div className={styles.homeLayout}>
-        {/* 보호 조치용 오버레이 */}
-        {isOverlayVisible && (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                backdropFilter: 'blur(10px)',
-                zIndex: 9999,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                color: 'white',
-                fontSize: '2rem',
-                textAlign: 'center'
-            }}>
-                {isPopupOn && alert('시선이 감지되었습니다!')}
-                보호 조치가 실행 중입니다.
-            </div>
-        )}
+      {/* 보호 조치용 블러 오버레이: 침입 + 블러 ON 일 때만 */}
+      {isOverlayVisible && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center',
+          color: 'white', fontSize: '2rem', textAlign: 'center'
+        }}>
+          보호 조치가 실행 중입니다.
+        </div>
+      )}
 
       <Sidebar currentPage="Home" setPage={setPage} />
+
       <main className={styles.mainContainer}>
         <div className={styles.contentWrapper}>
           <header className={styles.userPanel}>
@@ -156,7 +186,7 @@ const Home = ({ setPage }) => {
               <div>
                 <h1 className={styles.mainTitle}>보호 모드</h1>
                 <p className={styles.userName}>{userName}</p>
-                {/* 비디오 요소는 보이지 않게 숨겨둡니다 */}
+                {/* 비디오 요소는 숨김 */}
                 <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
               </div>
             </div>
@@ -170,17 +200,20 @@ const Home = ({ setPage }) => {
               </span>
             </div>
           </header>
+
           <section className={styles.dashboardGrid}>
             <div className={`${styles.card} ${styles.faceCard} ${styles.imageTop}`}>
               <img src={faceIdIcon} alt="Face ID" className={styles.largeIcon} />
               <p>등록된 얼굴</p>
               <p className={styles.countText}>{faceCount} 개</p>
             </div>
+
             <div className={`${styles.card} ${styles.urlCard} ${styles.imageTop}`}>
               <img src={urlIcon} alt="Protected URL" className={styles.largeIcon} />
               <p>보호 URL</p>
               <p className={styles.countText}>{urlCount} 개</p>
             </div>
+
             <div className={`${styles.card} ${styles.blurCard}`}>
               <img src={blurIcon} alt="Blur Effect" className={styles.smallIcon} />
               <div className={styles.textGroup}>
@@ -190,6 +223,7 @@ const Home = ({ setPage }) => {
                 </span>
               </div>
             </div>
+
             <div className={`${styles.card} ${styles.alertCard}`}>
               <img src={alertIcon} alt="Alert Popup" className={styles.smallIcon} />
               <div className={styles.textGroup}>
