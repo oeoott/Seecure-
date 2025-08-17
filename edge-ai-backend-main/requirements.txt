@@ -1,15 +1,25 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-python-jose[cryptography]
-passlib[bcrypt]
-python-multipart
-email-validator
-pandas
-torch
-onnxruntime
-Pillow
-opencv-python==4.8.0.76
-mediapipe==0.10.20
-ultralytics
+# AI 모델 실행
+onnxruntime-qnn==1.22.0
+onnxruntime-directml==1.22.0
+onnxruntime==1.22.0
+
+# Face Recognition & AI
+insightface==0.7.3
+
+# 필수 의존성
+numpy==1.26.4             # albucore 호환
+opencv-python==4.10.0.84
+protobuf==4.25.3
+sympy==1.13.3              # torch 요구사항 충족
+packaging==24.1
+flatbuffers==24.3.25
+coloredlogs==15.0.1
+
+# FastAPI 백엔드
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.0
+python-multipart==0.0.9
+
+# 개발 편의
+requests==2.32.3

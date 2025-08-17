@@ -17,16 +17,16 @@ const FaceRegistration = ({ setPage }) => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = async () => {
-              try {
-                await videoRef.current.play();
-                setIsCameraOn(true);
-                console.log("[성공] 카메라 연결 성공");
-              } catch (err) {
-                console.error("[실패] video play() 실패", err);
-              }
-            };
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = async () => {
+            try {
+              await videoRef.current.play();
+              setIsCameraOn(true);
+              console.log("[성공] 카메라 연결 성공");
+            } catch (err) {
+              console.error("[실패] video play() 실패", err);
+            }
+          };
         }
       } catch (err) {
         console.error("Error accessing camera: ", err);
@@ -37,6 +37,7 @@ const FaceRegistration = ({ setPage }) => {
 
   useEffect(() => {
     startCamera();
+    // 컴포넌트가 언마운트될 때 카메라 스트림을 정리합니다.
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject;
@@ -65,43 +66,58 @@ const FaceRegistration = ({ setPage }) => {
     const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // --- canvas.toBlob 대신 canvas.toDataURL 사용 ---
-    // 이미지를 Base64 문자열로 변환
-    const base64Image = canvas.toDataURL('image/jpeg');
-    if (!base64Image) {
+    // 캔버스 이미지를 Blob 객체로 변환합니다.
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
         alert("이미지 캡처에 실패했습니다.");
         setIsCapturing(false);
         return;
-    }
-
-    // JSON 객체 생성
-    const payload = {
-      name: name, // 사용자가 입력한 이름
-      image: base64Image
-    };
-
-    try {
-      // JSON 객체와 함께 API를 호출 (Content-Type 헤더는 제거)
-      // (api.js에서 'application/json'으로 기본 설정되어 있음)
-      const response = await api.post('/api/v1/ai/register-face', payload);
-      
-      // TODO: 여기서 등록된 얼굴의 이름(name)을 저장하는 별도의 API를 호출할 수 있습니다.
-      // 예: await api.post('/api/v1/faces', { name: name });
-
-      alert(response.data.message || "얼굴 등록 성공");
-      setName('');
-      setPage('FaceManagement');
-
-    } catch (error) {
-      console.error("Signup error:", error);
-      if (error.response?.data?.detail) {
-        alert(`얼굴 등록 실패: ${error.response.data.detail}`);
-      } else {
-        alert('얼굴 등록 중 오류가 발생했습니다.');
       }
-    } finally {
-      setIsCapturing(false);
-    }
+
+      // Blob을 File 객체로 만듭니다.
+      const imageFile = new File([blob], "face_capture.jpg", { type: "image/jpeg" });
+
+      // FormData 객체를 생성하고, 'file'이라는 키로 이미지 파일을 추가합니다.
+      const formData = new FormData();
+      formData.append('file', imageFile);
+
+      try {
+        // 1. AI 서버에 얼굴 이미지를 보내 임베딩을 등록합니다.
+        await api.post('/api/v1/ai/register-face', formData);
+        
+        // 2. 데이터베이스에 얼굴 이름(label)과 임시 URL을 저장합니다.
+        await api.post('/api/v1/faces/', { 
+          label: name, // 백엔드 스키마에 맞게 'label' 키를 사용합니다.
+          image_url: 'local_embedding.jpg' // 백엔드에서 요구하는 필수 필드
+        });
+
+        alert("얼굴 등록 성공");
+        setName('');
+        setPage('FaceManagement'); // 등록 성공 후 관리 페이지로 이동
+
+      } catch (error) {
+        console.error("얼굴 등록 에러:", error);
+        let errorMessage = '얼굴 등록 중 오류가 발생했습니다.';
+
+        // 서버에서 보낸 상세 에러 메시지를 추출하여 사용자에게 보여줍니다.
+        if (error.response?.data?.detail) {
+          const detail = error.response.data.detail;
+          if (typeof detail === 'string') {
+            errorMessage = `얼굴 등록 실패: ${detail}`;
+          } else if (Array.isArray(detail) && detail.length > 0) {
+            const firstError = detail[0];
+            const errorLocation = firstError.loc.join(' -> ');
+            errorMessage = `얼굴 등록 실패: [${errorLocation}] ${firstError.msg}`;
+          } else {
+            errorMessage = `얼굴 등록 실패: ${JSON.stringify(detail)}`;
+          }
+        }
+        
+        alert(errorMessage);
+      } finally {
+        setIsCapturing(false); // 등록 종료
+      }
+    }, 'image/jpeg');
   };
 
   return (
@@ -114,7 +130,6 @@ const FaceRegistration = ({ setPage }) => {
             <p className={styles.subtitle}>웹캠을 통해 얼굴을 등록해보세요.</p>
           </header>
 
-          {/* --- 🔽 여기가 요청하신 디자인으로 수정된 부분입니다 --- */}
           <div className={styles.videoBox}>
             <video
               ref={videoRef}
