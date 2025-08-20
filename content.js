@@ -1,12 +1,14 @@
 (() => {
-  let overlay = null;        // 전체 화면 블러 오버레이
-  let cursorBlur = null;     // 커서 블러 원
-  let isEnabled = false;     // 페이지 블러 상태
-  let isCursorBlur = false;  // 커서 블러 상태
-  let blurAmount = 12;       // 기본 블러 강도(px)
-  let mouseMoveBound = null; // 이벤트 핸들러 저장
+  let overlay = null;
+  let cursorBlur = null;
+  let isEnabled = false;
+  let isCursorBlur = false;
+  let blurAmount = 12;
+  let mouseMoveBound = null;
 
-  // 오버레이 생성/제거
+  const ORIGIN = location.origin;
+  const STATE_KEY = `state:${ORIGIN}`;
+
   function ensureOverlay() {
     if (!overlay) {
       overlay = document.createElement("div");
@@ -15,13 +17,10 @@
     }
     overlay.style.backdropFilter = `blur(${blurAmount}px)`;
   }
-
   function removeOverlay() {
     if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
     overlay = null;
   }
-
-  // 커서 블러 생성/제거
   function ensureCursorBlur() {
     if (!cursorBlur) {
       cursorBlur = document.createElement("div");
@@ -29,19 +28,14 @@
       document.documentElement.appendChild(cursorBlur);
     }
     cursorBlur.style.backdropFilter = `blur(${Math.max(blurAmount, 8)}px)`;
-
     if (!mouseMoveBound) {
       mouseMoveBound = (e) => {
-        // viewport 내에서만 이동
-        const x = e.clientX;
-        const y = e.clientY;
-        cursorBlur.style.left = `${x}px`;
-        cursorBlur.style.top = `${y}px`;
+        cursorBlur.style.left = `${e.clientX}px`;
+        cursorBlur.style.top  = `${e.clientY}px`;
       };
       window.addEventListener("mousemove", mouseMoveBound, { passive: true });
     }
   }
-
   function removeCursorBlur() {
     if (mouseMoveBound) {
       window.removeEventListener("mousemove", mouseMoveBound);
@@ -51,32 +45,31 @@
     cursorBlur = null;
   }
 
-  // 상태 토글
-  function applyEnabled(v) {
-    isEnabled = v;
-    if (isEnabled) ensureOverlay();
-    else removeOverlay();
-  }
-
-  function applyCursorBlur(v) {
-    isCursorBlur = v;
-    if (isCursorBlur) ensureCursorBlur();
-    else removeCursorBlur();
-  }
-
-  function applyBlurAmount(px) {
+  function applyEnabled(v) { isEnabled = v; v ? ensureOverlay() : removeOverlay(); }
+  function applyCursorBlur(v){ isCursorBlur = v; v ? ensureCursorBlur() : removeCursorBlur(); }
+  function applyBlurAmount(px){
     blurAmount = Number(px) || 12;
     if (overlay) overlay.style.backdropFilter = `blur(${blurAmount}px)`;
     if (cursorBlur) cursorBlur.style.backdropFilter = `blur(${Math.max(blurAmount, 8)}px)`;
   }
+  function removeAll(){ applyEnabled(false); applyCursorBlur(false); }
 
-  function removeAll() {
-    applyEnabled(false);
-    applyCursorBlur(false);
+  // 🔹 새로고침/이동 후에도 상태 유지: 초기 로드에서 스토리지 값을 적용
+  async function initFromStorage() {
+    try {
+      const data = await chrome.storage.local.get(STATE_KEY);
+      const st = data[STATE_KEY];
+      if (st) {
+        applyBlurAmount(st.blurAmount ?? 12);
+        applyEnabled(!!st.enabled);
+        applyCursorBlur(!!st.cursorBlur);
+      }
+    } catch (e) {
+      console.warn("initFromStorage failed:", e);
+    }
   }
 
-  // popup → content 메시지 처리
-  chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
+  chrome.runtime.onMessage.addListener((msg) => {
     switch (msg.type) {
       case "SET_ENABLED":
         applyBlurAmount(msg.blurAmount ?? blurAmount);
@@ -99,17 +92,15 @@
           applyCursorBlur(!!msg.state.cursorBlur);
         }
         break;
-      default:
-        break;
     }
   });
 
-  // 페이지 이동/SPA 라우팅 등에서도 오버레이가 잘 붙어있게 document 변경 시 재보정
   const observer = new MutationObserver(() => {
     if (isEnabled && !overlay) ensureOverlay();
     if (isCursorBlur && !cursorBlur) ensureCursorBlur();
   });
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
-  // 탭이 바뀌거나 프레임이 다시 로드될 때 초기 상태는 팝업에서 SYNC_STATE로 맞춰줌.
+  // ✅ 첫 주입 시 상태 자동 복원
+  initFromStorage();
 })();
