@@ -1,0 +1,21 @@
+/* 전체 화면 블러 오버레이 (backdrop-filter 사용) */
+.seecure-blur-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647; /* 최상단 */
+  backdrop-filter: blur(12px);
+  pointer-events: none; /* 클릭 막지 않음 (필요 시 auto로 바꿔도 됨) */
+}
+
+/* 커서 블러: 커서를 따라다니는 원형 블러 */
+.seecure-cursor-blur {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  margin-left: -100px; /* 중심 정렬 */
+  margin-top: -100px;
+  border-radius: 50%;
+  z-index: 2147483647;
+  pointer-events: none;
+  backdrop-filter: blur(15px);
+}
