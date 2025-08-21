@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Seecure Blur (Top Popup + Cursor Blur)",
+  "version": "1.0.1",
+  "description": "상단 팝업에서 ON/OFF, 블러 해제, 커서 블러 모드를 제어하는 확장 프로그램.",
+  "action": {
+    "default_title": "Seecure Blur",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": ["content.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
