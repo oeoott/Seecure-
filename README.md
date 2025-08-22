@@ -155,8 +155,10 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 
 * **터미널 1** (백엔드용)에서 아래 명령어를 실행합니다.
     ```powershell
-    # 가상환경이 활성화된 상태인지 (venv) 확인
     uvicorn app.main:app
+    ```
+    ```powershell
+    python -m uvicorn app.main:app --reload
     ```
     > `Uvicorn running on http://127.0.0.1:8000` 메시지가 보이면 성공입니다.
 
