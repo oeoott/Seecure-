@@ -3,7 +3,6 @@ import Sidebar from './Sidebar.jsx';
 import styles from '../Home.module.css';
 import api from '../api';
 
-// 아이콘 import 부분은 기존과 동일하게 유지
 import userAvatar from '../assets/icon_home_shield.png';
 import faceIdIcon from '../assets/icon_home_face.png';
 import urlIcon from '../assets/icon_home_url.png';
@@ -18,12 +17,10 @@ const Home = ({ setPage }) => {
   const [isBlurOn, setIsBlurOn] = useState(true);
   const [isPopupOn, setIsPopupOn] = useState(true);
 
-  // 대시보드 수치
   const [faceCount, setFaceCount] = useState(0);
   const [urlCount, setUrlCount] = useState(0);
   const [protectedUrls, setProtectedUrls] = useState([]);
 
-  // 대시보드 데이터를 불러오는 함수
   const fetchDashboardData = useCallback(async () => {
     try {
       const [facesResponse, urlsResponse] = await Promise.all([
@@ -41,30 +38,43 @@ const Home = ({ setPage }) => {
 
   useEffect(() => {
     fetchDashboardData();
-    // 로컬 스토리지에서 보호 옵션 상태 불러오기
     const savedBlur = localStorage.getItem('isBlurOn');
     if (savedBlur !== null) setIsBlurOn(JSON.parse(savedBlur));
     const savedPopup = localStorage.getItem('isPopupOn');
     if (savedPopup !== null) setIsPopupOn(JSON.parse(savedPopup));
     
-    // 컴포넌트가 로드되면 background.js에게 현재 보호모드 상태를 물어봅니다.
-    chrome.runtime.sendMessage({ type: 'GET_PROTECTION_STATUS' }, (response) => {
-      if (response) {
-        setIsProtectionOn(response.enabled);
+    // ⭐️ sendMessage 호출 방식을 Promise 기반으로 수정했습니다.
+    const getStatus = async () => {
+      try {
+        const response = await chrome.runtime.sendMessage({ type: 'GET_PROTECTION_STATUS' });
+        if (response) {
+          setIsProtectionOn(response.enabled);
+        }
+      } catch (error) {
+        console.warn("백그라운드와 연결 실패:", error);
+        setIsProtectionOn(false);
       }
-    });
+    };
+    getStatus();
   }, [fetchDashboardData]);
 
-  // 백그라운드 스크립트와 연동되는 보호 모드 토글 함수
+  // ⭐️ sendMessage 호출 방식을 Promise 기반으로 수정했습니다.
   const handleProtectionToggle = () => {
     const nextState = !isProtectionOn;
     setIsProtectionOn(nextState);
 
-    chrome.runtime.sendMessage({
-      type: 'TOGGLE_PROTECTION',
-      enabled: nextState,
-      urls: protectedUrls
-    });
+    const toggleProtection = async () => {
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'TOGGLE_PROTECTION',
+          enabled: nextState,
+          urls: protectedUrls
+        });
+      } catch (error) {
+        console.warn("백그라운드와 연결 실패:", error);
+      }
+    };
+    toggleProtection();
   };
 
   return (
@@ -92,7 +102,6 @@ const Home = ({ setPage }) => {
             </div>
           </header>
 
-          {/* 대시보드 카드 */}
           <section className={styles.dashboardGrid}>
             <div className={`${styles.card} ${styles.faceCard} ${styles.imageTop}`}>
               <img src={faceIdIcon} alt="Face ID" className={styles.largeIcon} />

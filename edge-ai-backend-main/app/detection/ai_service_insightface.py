@@ -65,16 +65,25 @@ class AIService:
         faces = self.app.get(frame)
         if not faces:
             print("[INFO] No face detected in this frame.")
-            return {"intruder_alert": False}
+            return {"intruder_alert": False, "similarity_score": 0.0}
 
         print(f"[DEBUG] Faces detected: {len(faces)} (threshold={self.similarity_threshold:.2f})")
+
+        lowest_sim = 1.0
+        has_intruder = False
         for idx, f in enumerate(faces):
             sim = self._cos(self.user_embedding, f.normed_embedding.astype(np.float32))
             print(f"[DEBUG] face#{idx} similarity={sim:.4f}")
 
-            if sim < self.similarity_threshold:
-                print(f"[ALERT] Intruder detected! (similarity={sim:.4f} < {self.similarity_threshold:.2f})")
-                return {"intruder_alert": True}
+            if sim < lowest_sim:
+                lowest_sim = sim
 
-        print("[INFO] Registered user detected only. (no intruders)")
-        return {"intruder_alert": False}
+            if sim < self.similarity_threshold:
+                has_intruder = True
+
+            if has_intruder:    
+                print(f"[ALERT] Intruder detected! (lowest sim={lowest_sim:.4f} < {self.similarity_threshold:.2f})")
+                return {"intruder_alert": True, "similarity_score": lowest_sim}
+            else:
+                print("[INFO] Registered user detected only. (no intruders)")
+                return {"intruder_alert": False, "similarity_score": lowest_sim}

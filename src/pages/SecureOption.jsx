@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Sidebar from './Sidebar.jsx';
-import '../SecureOption.css'; // ⬅️ 확장자 수정
+import '../SecureOption.css'; // 확장자 수정
 
 const SecureOption = ({ setPage }) => {
   const [isBlurOn, setIsBlurOn] = useState(() => {

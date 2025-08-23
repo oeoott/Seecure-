@@ -3,7 +3,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 import numpy as np
 import cv2
 
-# ✅ 여기만 바뀝니다: InsightFace 기반 서비스 사용
+#nInsightFace 기반 서비스 사용
 from app.detection.ai_service_insightface import AIService
 
 router = APIRouter()
@@ -31,6 +31,7 @@ async def detect_frame(file: UploadFile = File(...)):
     폼데이터의 이미지 파일을 받아 침입자 여부를 판별합니다.
     반환: {"intruder_alert": True|False} 또는 {"error": "..."}
     """
+   # print("클라이언트로 부터 이미지 수신. AI 감지를 시작합니다.") # 디버깅 용 print문
     data = await file.read()
     arr = np.frombuffer(data, dtype=np.uint8)
     frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
