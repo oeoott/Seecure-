@@ -17,6 +17,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         protectedUrls = [];
         stopDetection();
       }
+      sendResponse({ success: true });
       break;
     
     case 'GET_PROTECTION_STATUS':
@@ -39,22 +40,18 @@ function startDetection() {
   console.log("얼굴 감지를 시작합니다...");
   detectionInterval = setInterval(async () => {
     try {
-      // 1. offscreen으로부터 이미지 텍스트(Data URL)를 받아옴
       const frameDataUrl = await captureWebcamFrame();
       if (!frameDataUrl) {
         console.warn("웹캠 프레임 캡처 실패.");
         return;
       }
 
-      // 2. 받아온 Data URL을 다시 이미지 파일(Blob)로 변환
       const fetchResponse = await fetch(frameDataUrl);
       const frameBlob = await fetchResponse.blob();
 
       const formData = new FormData();
       formData.append('file', frameBlob, 'frame.jpg');
 
-      // 3. 실제 AI 서버 주소로 fetch 요청
-      // https://[개인 pc ip 주소]:[포트 번호]/api/v1/ai/detect-frame
       const apiResponse = await fetch('http://127.0.0.1:8000/api/v1/ai/detect-frame', {
         method: 'POST',
         body: formData,
@@ -65,6 +62,25 @@ function startDetection() {
       const result = await apiResponse.json();
       console.log('[AI 감지 결과]', result);
 
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+      if (tab && tab.url) {
+        const isProtectedUrl = protectedUrls.some(url => tab.url.includes(url));
+
+        if (result.intruder_alert === true && isProtectedUrl) {
+          console.log("침입자 감지! 보호 조치를 실행합니다.");
+          chrome.tabs.sendMessage(tab.id, { type: 'APPLY_BLUR', blurAmount: 15 });
+          chrome.tabs.sendMessage(tab.id, { type: 'SHOW_ALERT_POPUP' });
+        } else {
+          if(result.intruder_alert === true && !isProtectedUrl){
+            console.log("침입자 감지! 하지만 현재 URL이 보호 목록에 없어 보호 조치를 해제합니다.");
+          } else {
+            console.log("침입자가 감지되지 않음. 보호 조치를 해제합니다.");
+          }
+          chrome.tabs.sendMessage(tab.id, { type: 'REMOVE_BLUR' });
+        }
+      }
+
     } catch (error) {
       console.error("감지 루프 중 에러 발생:", error);
       stopDetection();
@@ -73,6 +89,18 @@ function startDetection() {
 }
 
 function stopDetection() {
+  // 1. 열려있는 모든 탭을 찾아서
+  chrome.tabs.query({}, (tabs) => {
+    for (const tab of tabs) {
+      // 2. 각 탭에게 "블러 제거" 메시지를 보냄
+      try {
+        chrome.tabs.sendMessage(tab.id, { type: 'REMOVE_BLUR' });
+      } catch (e) {
+        console.log(`Tab ${tab.id}에 메시지를 보낼 수 없습니다. (무시해도 괜찮음)`);
+      }
+    }
+  });
+
   if (detectionInterval) {
     clearInterval(detectionInterval);
     detectionInterval = null;

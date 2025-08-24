@@ -81,9 +81,9 @@ class AIService:
             if sim < self.similarity_threshold:
                 has_intruder = True
 
-            if has_intruder:    
-                print(f"[ALERT] Intruder detected! (lowest sim={lowest_sim:.4f} < {self.similarity_threshold:.2f})")
-                return {"intruder_alert": True, "similarity_score": lowest_sim}
-            else:
-                print("[INFO] Registered user detected only. (no intruders)")
-                return {"intruder_alert": False, "similarity_score": lowest_sim}
+        if has_intruder:    
+            print(f"[ALERT] Intruder detected! (lowest sim={lowest_sim:.4f} < {self.similarity_threshold:.2f})")
+            return {"intruder_alert": True, "similarity_score": lowest_sim}
+        else:
+            print("[INFO] Registered user detected only. (no intruders)")
+            return {"intruder_alert": False, "similarity_score": lowest_sim}

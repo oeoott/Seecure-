@@ -1,98 +1,148 @@
-/* content.js */
+// public/content.js
+
 (() => {
-  // ... (기존의 블러 생성/제거 함수들은 그대로 유지) ...
-  let overlay = null;
-  let cursorBlur = null;
-  // ... (ensureOverlay, removeOverlay 등 모든 블러 관련 함수) ...
+    console.log("✅ SeeCure 콘텐츠 스크립트가 성공적으로 로드되었습니다!");
 
-  let controlPanel = null;
-  let videoElement = null;
-  let detectionInterval = null;
+    let overlay = null;
+    let controlPopup = null;
+    let state = { enabled: false, cursorBlur: false, blurAmount: 12 };
 
-  // 🔹 AI 감지 로직 (Home.jsx에서 가져옴)
-  const startDetection = async () => {
-    if (detectionInterval) return; // 이미 실행 중이면 중복 방지
+    const ensureOverlay = () => {
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'seecure-blur-overlay';
+            overlay.className = 'seecure-blur-overlay';
+            document.body.appendChild(overlay);
+        }
+        updateOverlay();
+    };
 
-    try {
-      // 1. 숨겨진 비디오 요소 생성 및 스트림 연결
-      videoElement = document.createElement('video');
-      videoElement.style.display = 'none';
-      document.body.appendChild(videoElement);
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoElement.srcObject = stream;
-      await videoElement.play();
-      console.log("카메라 스트림 시작, 감지를 시작합니다.");
-
-      // 2. 1초마다 프레임 감지
-      detectionInterval = setInterval(async () => {
-        if (!videoElement || videoElement.readyState < 2) return;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-
-        canvas.toBlob(async (blob) => {
-          if (!blob) return;
-          const formData = new FormData();
-          formData.append('file', blob, 'frame.jpg');
-
-          try {
-            const response = await fetch('http://127.0.0.1:8000/api/v1/ai/detect-frame', {
-              method: 'POST',
-              body: formData,
-              // content.js에서는 api.js를 쓸 수 없으므로, 직접 토큰을 가져와 헤더에 추가합니다.
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              }
-            });
-            
-            if (!response.ok) throw new Error('서버 응답 오류');
-
-            const data = await response.json();
-            console.log('[AI] 감지 결과:', data);
-
-            if (data.intruder_alert === true) {
-              onUnauthorizedUserDetected();
+    const removeOverlay = () => {
+        if (overlay) {
+            overlay.remove();
+            overlay = null;
+        }
+        if (controlPopup) {
+            controlPopup.remove();
+            controlPopup = null;
+        }
+    };
+    
+    const updateOverlay = () => {
+        if (overlay) {
+            if (state.cursorBlur) {
+                overlay.style.backdropFilter = `blur(${state.blurAmount}px)`;
+                overlay.style.width = '200px';
+                overlay.style.height = '200px';
+                overlay.style.borderRadius = '50%';
+                overlay.style.pointerEvents = 'none';
+            } else {
+                overlay.style.backdropFilter = `blur(${state.blurAmount}px)`;
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.borderRadius = '0';
+                overlay.style.pointerEvents = 'none';
             }
+        }
+    };
 
-          } catch (error) {
-            console.error("프레임 감지 API 호출 실패:", error);
-            stopDetection(); // 에러 발생 시 감지 중단
-          }
-        }, 'image/jpeg');
-      }, 1000);
-    } catch (err) {
-      console.error("카메라 접근 실패:", err);
-      // 사용자에게 권한 요청을 안내할 수 있습니다.
-    }
-  };
+    const setupControlPopup = () => {
+        if (controlPopup) return;
+        
+        controlPopup = document.createElement('div');
+        controlPopup.id = 'seecure-control-popup';
+        controlPopup.innerHTML = `
+            <div id="seecure-popup-root">
+                <header>Seecure Blur</header>
+                <section class="row">
+                    <label class="lbl">
+                        <input id="toggle-enabled" type="checkbox" ${state.enabled ? 'checked' : ''} />
+                        <span>이 탭에서 블러 ON/OFF</span>
+                    </label>
+                </section>
+                <section class="row">
+                    <label class="lbl">
+                        <input id="toggle-cursor" type="checkbox" ${state.cursorBlur ? 'checked' : ''} />
+                        <span>커서 블러 모드</span>
+                    </label>
+                </section>
+                <section class="row">
+                    <button id="btn-remove-blur" class="full">화면 블러 즉시 해제</button>
+                </section>
+                <section class="row small">
+                    <label>블러 강도(px)</label>
+                    <input id="blur-amount" type="range" min="4" max="24" step="1" value="${state.blurAmount}"/>
+                    <span id="blur-amount-val">${state.blurAmount}</span>
+                </section>
+                <footer>
+                    <small>현재 탭의 도메인에만 적용돼요.</small>
+                </footer>
+            </div>
+        `;
+        document.body.appendChild(controlPopup);
 
-  const stopDetection = () => {
-    if (detectionInterval) {
-      clearInterval(detectionInterval);
-      detectionInterval = null;
-    }
-    if (videoElement && videoElement.srcObject) {
-      videoElement.srcObject.getTracks().forEach(track => track.stop());
-      videoElement.remove();
-      videoElement = null;
-    }
-    console.log("감지를 중단합니다.");
-  };
+        // 이벤트 리스너 설정
+        const toggleEnabled = document.getElementById("toggle-enabled");
+        const toggleCursor = document.getElementById("toggle-cursor");
+        const btnRemove = document.getElementById("btn-remove-blur");
+        const rng = document.getElementById("blur-amount");
+        const rngVal = document.getElementById("blur-amount-val");
 
-  // 🔹 침입자 감지 시 동작 (블러 + 컨트롤 창)
-  const onUnauthorizedUserDetected = () => {
-    // ... (이전 답변에서 제공한 onUnauthorizedUserDetected, injectControlPanel 함수는 그대로 사용) ...
-  };
+        toggleEnabled.addEventListener("change", () => {
+            state.enabled = toggleEnabled.checked;
+            state.enabled ? ensureOverlay() : removeOverlay();
+            // TODO: background로 상태 업데이트 메시지 보내기
+        });
 
-  // 🔹 background.js로부터 메시지를 받습니다.
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'START_DETECTION') {
-      startDetection();
-    }
-  });
+        toggleCursor.addEventListener("change", () => {
+            state.cursorBlur = toggleCursor.checked;
+            updateOverlay();
+            // TODO: background로 상태 업데이트 메시지 보내기
+        });
+
+        rng.addEventListener("input", () => {
+            rngVal.textContent = rng.value;
+        });
+
+        rng.addEventListener("change", () => {
+            state.blurAmount = Number(rng.value);
+            updateOverlay();
+            // TODO: background로 상태 업데이트 메시지 보내기
+        });
+
+        btnRemove.addEventListener("click", () => {
+            state.enabled = false;
+            state.cursorBlur = false;
+            toggleEnabled.checked = false;
+            toggleCursor.checked = false;
+            removeOverlay();
+            // TODO: background로 상태 업데이트 메시지 보내기
+        });
+    };
+    
+    // background.js로부터의 명령 수신
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === 'APPLY_BLUR') {
+            state.enabled = true;
+            state.blurAmount = message.blurAmount;
+            state.cursorBlur = message.cursorBlur ?? false;
+            ensureOverlay();
+            setupControlPopup(); // ⭐️ 블러가 적용되면 설정 팝업도 띄움
+        } else if (message.type === 'REMOVE_BLUR') {
+            state.enabled = false;
+            removeOverlay();
+        } else if (message.type === 'SHOW_ALERT_POPUP') {
+            // 이 기능은 이제 사용하지 않음
+        }
+        return true;
+    });
+
+    // 마우스 이동 감지
+    document.addEventListener('mousemove', (e) => {
+        if (state.cursorBlur && overlay) {
+            overlay.style.left = `${e.clientX}px`;
+            overlay.style.top = `${e.clientY}px`;
+        }
+    });
 
 })();

@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     captureAndSendFrame().catch(err => {
         console.error("캡처 및 전송 중 에러 발생:", err);
     });
-    return true; 
+    return false; 
   }
 });
 
