@@ -1,83 +1,110 @@
-// popup.js
-async function getCurrentTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tab;
-}
-function getOrigin(url) {
-  try { const u = new URL(url); return `${u.protocol}//${u.host}`; }
-  catch { return null; }
-}
-function stateKey(origin) { return `state:${origin}`; }
-
-async function loadState(origin) {
-  const key = stateKey(origin);
-  const data = await chrome.storage.local.get(key);
-  return data[key] || { enabled: false, cursorBlur: false, blurAmount: 12 };
-}
-async function saveState(origin, state) {
-  const key = stateKey(origin);
-  await chrome.storage.local.set({ [key]: state });
-}
-async function sendToTab(tabId, msg) {
-  try { await chrome.tabs.sendMessage(tabId, msg); }
-  catch (e) { console.warn("sendMessage failed:", e); }
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
-  const toggleEnabled = document.getElementById("toggle-enabled");
-  const toggleCursor  = document.getElementById("toggle-cursor");
-  const btnRemove     = document.getElementById("btn-remove-blur");
-  const rng           = document.getElementById("blur-amount");
-  const rngVal        = document.getElementById("blur-amount-val");
+  const elProt   = document.getElementById("toggle-protection");
+  const elBlur   = document.getElementById("toggle-blur");
+  const elPopup  = document.getElementById("toggle-popup");
+  const elRange  = document.getElementById("blur-amount");
+  const elRangeV = document.getElementById("blur-amount-val");
+  const btnHome  = document.getElementById("btn-home");
+  const loginGuard = document.getElementById("login-guard");
 
-  const tab = await getCurrentTab();
-  const origin = getOrigin(tab?.url || "");
-  if (!origin) {
-    // 드물게 chrome 정책/권한 이슈로 url 접근이 막힐 수 있음
-    // 이 경우에도 content가 자체적으로 상태를 로드하므로 팝업은 안내만
-    toggleEnabled.disabled = true;
-    toggleCursor.disabled = true;
-    btnRemove.disabled = true;
-    rng.disabled = true;
-    rngVal.textContent = "-";
-    return;
+  // 인앱 열기
+  const openHome = async () => {
+    const url = chrome.runtime.getURL("index.html"); // 빌드 산출물이면 "app/index.html"
+    try { await chrome.tabs.create({ url }); } catch(e) { console.warn(e); }
+  };
+  btnHome.addEventListener("click", openHome);
+
+  // 로그인 여부 판단 (인앱이 쓰는 localStorage 'token')
+  const isLoggedIn = !!localStorage.getItem('token');
+
+  // 로그인 가드 적용
+  function applyLoginGuard(loggedIn) {
+    loginGuard.style.display = loggedIn ? "none" : "block";
+
+    elProt.disabled  = !loggedIn;
+    elBlur.disabled  = !loggedIn;
+    elPopup.disabled = !loggedIn;
+    elRange.disabled = !loggedIn;
+
+    if (!loggedIn) {
+      elProt.checked  = false;
+      elBlur.checked  = false;
+      elPopup.checked = false;
+      elRange.value   = "12";
+      elRangeV.textContent = "12";
+    }
+  }
+  applyLoginGuard(isLoggedIn);
+  if (!isLoggedIn) return; // 미로그인 시 BG와 통신하지 않음
+
+  // ====== 로그인 상태일 때만 아래 진행 ======
+
+  // 초기 하이드레이트
+  try {
+    const res = await chrome.runtime.sendMessage({ type: "GET_OPTIONS" });
+    if (res?.ok) {
+      elBlur.checked   = !!res.options?.blur;
+      elPopup.checked  = !!res.options?.popup;
+      const amt = Number(res.options?.blurAmount ?? 12);
+      elRange.value    = String(amt);
+      elRangeV.textContent = String(amt);
+    }
+  } catch {}
+  try {
+    const st = await chrome.runtime.sendMessage({ type: "GET_PROTECTION_STATUS" });
+    if (st) elProt.checked = !!st.enabled;
+  } catch {}
+
+  // BG → 팝업 UI 실시간 반영
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === 'OPTIONS_CHANGED' && msg.options) {
+      if (typeof msg.options.blur === 'boolean')  elBlur.checked  = msg.options.blur;
+      if (typeof msg.options.popup === 'boolean') elPopup.checked = msg.options.popup;
+      if (typeof msg.options.blurAmount === 'number') {
+        elRange.value = String(msg.options.blurAmount);
+        elRangeV.textContent = String(msg.options.blurAmount);
+      }
+    }
+  });
+
+  // 보호 모드 토글
+  elProt.addEventListener("change", async () => {
+    try {
+      await chrome.runtime.sendMessage({ type: "TOGGLE_PROTECTION", enabled: elProt.checked });
+    } catch (e) { console.warn(e); }
+  });
+
+  // 옵션 동기화 공통 함수
+  async function syncOptionsFromPopup(extra = {}) {
+    try {
+      const r = await chrome.runtime.sendMessage({ type: "GET_OPTIONS" });
+      const urls = r?.urls || [];
+      const payload = {
+        type: "SYNC_OPTIONS",
+        options: {
+          blur: elBlur.checked,
+          popup: elPopup.checked,
+          blurAmount: Number(elRange.value),
+          ...extra
+        },
+        urls
+      };
+      await chrome.runtime.sendMessage(payload);
+      // 인앱에서도 참조할 수 있게 로컬 반영(선택)
+      localStorage.setItem('isBlurOn', JSON.stringify(elBlur.checked));
+      localStorage.setItem('isPopupOn', JSON.stringify(elPopup.checked));
+      localStorage.setItem('blurAmount', String(elRange.value));
+    } catch (e) { console.warn(e); }
   }
 
-  const state = await loadState(origin);
+  // 체크박스 변경 → 동기화
+  elBlur.addEventListener("change", () => syncOptionsFromPopup());
+  elPopup.addEventListener("change", () => syncOptionsFromPopup());
 
-  toggleEnabled.checked = state.enabled;
-  toggleCursor.checked  = state.cursorBlur;
-  rng.value = state.blurAmount ?? 12;
-  rngVal.textContent = rng.value;
-
-  toggleEnabled.addEventListener("change", async () => {
-    state.enabled = toggleEnabled.checked;
-    await saveState(origin, state);
-    await sendToTab(tab.id, { type: "SET_ENABLED", enabled: state.enabled, blurAmount: state.blurAmount });
+  // 슬라이더 표시값 실시간 업데이트
+  elRange.addEventListener("input", () => {
+    elRangeV.textContent = String(elRange.value);
   });
-
-  toggleCursor.addEventListener("change", async () => {
-    state.cursorBlur = toggleCursor.checked;
-    await saveState(origin, state);
-    await sendToTab(tab.id, { type: "SET_CURSOR_BLUR", enabled: state.cursorBlur, blurAmount: state.blurAmount });
-  });
-
-  rng.addEventListener("input", () => { rngVal.textContent = rng.value; });
-  rng.addEventListener("change", async () => {
-    state.blurAmount = Number(rng.value);
-    await saveState(origin, state);
-    await sendToTab(tab.id, { type: "SET_BLUR_AMOUNT", blurAmount: state.blurAmount });
-  });
-
-  btnRemove.addEventListener("click", async () => {
-    state.enabled = false;
-    state.cursorBlur = false;
-    await saveState(origin, state);
-    toggleEnabled.checked = false;
-    toggleCursor.checked = false;
-    await sendToTab(tab.id, { type: "REMOVE_BLUR" });
-  });
-
-  // 팝업 열릴 때, 현재 상태를 content에 동기화
-  await sendToTab(tab.id, { type: "SYNC_STATE", state });
+  // 슬라이더 값 확정 시 동기화
+  elRange.addEventListener("change", () => syncOptionsFromPopup());
 });

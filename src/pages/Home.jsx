@@ -9,10 +9,9 @@ import urlIcon from '../assets/icon_home_url.png';
 import blurIcon from '../assets/icon_home_blur.png';
 import alertIcon from '../assets/icon_home_bell.png';
 
-
 const Home = ({ setPage }) => {
   const userName = "사용자";
-  
+
   const [isProtectionOn, setIsProtectionOn] = useState(false);
   const [isBlurOn, setIsBlurOn] = useState(true);
   const [isPopupOn, setIsPopupOn] = useState(true);
@@ -21,6 +20,11 @@ const Home = ({ setPage }) => {
   const [urlCount, setUrlCount] = useState(0);
   const [protectedUrls, setProtectedUrls] = useState([]);
 
+  // 하이드레이트 완료 플래그
+  const [optionsHydrated, setOptionsHydrated] = useState(false);
+  const [urlsHydrated, setUrlsHydrated] = useState(false);
+
+  // 대시보드 및 URL 목록 로드 (서버가 권위)
   const fetchDashboardData = useCallback(async () => {
     try {
       const [facesResponse, urlsResponse] = await Promise.all([
@@ -29,52 +33,110 @@ const Home = ({ setPage }) => {
       ]);
       setFaceCount(facesResponse.data.length);
       setUrlCount(urlsResponse.data.length);
-      setProtectedUrls(urlsResponse.data.map(item => item.url_pattern));
+      const urls = urlsResponse.data.map(item => item.url_pattern);
+      setProtectedUrls(urls);
+      setUrlsHydrated(true);
     } catch (error) {
       console.error("대시보드 데이터 로딩 실패:", error);
       if (error.response?.status === 401) setPage('login');
     }
   }, [setPage]);
 
+  // 최초 로드: 서버 URL/대시보드 + BG 보호상태 + BG 옵션 하이드레이트
   useEffect(() => {
     fetchDashboardData();
-    const savedBlur = localStorage.getItem('isBlurOn');
-    if (savedBlur !== null) setIsBlurOn(JSON.parse(savedBlur));
-    const savedPopup = localStorage.getItem('isPopupOn');
-    if (savedPopup !== null) setIsPopupOn(JSON.parse(savedPopup));
-    
-    // ⭐️ sendMessage 호출 방식을 Promise 기반으로 수정했습니다.
-    const getStatus = async () => {
+
+    // 1) BG의 옵션이 '단일 소스'가 되게 먼저 읽어온다.
+    (async () => {
       try {
-        const response = await chrome.runtime.sendMessage({ type: 'GET_PROTECTION_STATUS' });
-        if (response) {
-          setIsProtectionOn(response.enabled);
+        const res = await chrome.runtime.sendMessage({ type: 'GET_OPTIONS' });
+        if (res?.ok && res.options) {
+          const blur = !!res.options.blur;
+          const popup = !!res.options.popup;
+          setIsBlurOn(blur);
+          setIsPopupOn(popup);
+          // Home/다른 화면 일관성을 위해 로컬에도 반영 (선택)
+          localStorage.setItem('isBlurOn', JSON.stringify(blur));
+          localStorage.setItem('isPopupOn', JSON.stringify(popup));
         }
-      } catch (error) {
-        console.warn("백그라운드와 연결 실패:", error);
+      } catch {}
+      setOptionsHydrated(true);
+    })();
+
+    // 2) 보호 모드 현재 상태
+    (async () => {
+      try {
+        const res = await chrome.runtime.sendMessage({ type: 'GET_PROTECTION_STATUS' });
+        if (res) setIsProtectionOn(res.enabled);
+      } catch {
         setIsProtectionOn(false);
       }
-    };
-    getStatus();
+    })();
   }, [fetchDashboardData]);
 
-  // ⭐️ sendMessage 호출 방식을 Promise 기반으로 수정했습니다.
-  const handleProtectionToggle = () => {
-    const nextState = !isProtectionOn;
-    setIsProtectionOn(nextState);
+  // BG → Home 실시간 반영 (팝업/옵션 페이지에서 바꿔도 즉시 업데이트)
+  useEffect(() => {
+    const onMsg = (msg) => {
+      if (msg?.type === 'OPTIONS_CHANGED' && msg.options) {
+        if (typeof msg.options.blur === 'boolean') {
+          setIsBlurOn(msg.options.blur);
+          localStorage.setItem('isBlurOn', JSON.stringify(msg.options.blur));
+        }
+        if (typeof msg.options.popup === 'boolean') {
+          setIsPopupOn(msg.options.popup);
+          localStorage.setItem('isPopupOn', JSON.stringify(msg.options.popup));
+        }
+      }
+    };
+    chrome?.runtime?.onMessage?.addListener?.(onMsg);
+    return () => chrome?.runtime?.onMessage?.removeListener?.(onMsg);
+  }, []);
 
-    const toggleProtection = async () => {
+  // ✅ 옵션/URL 동기화: 옵션/URL이 '모두' 하이드레이트된 뒤에만 BG로 SYNC
+  useEffect(() => {
+    if (!optionsHydrated || !urlsHydrated) return; // 초기 덮어쓰기 방지
+    (async () => {
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'SYNC_OPTIONS',
+          options: { blur: isBlurOn, popup: isPopupOn },
+          urls: protectedUrls
+        });
+      } catch (e) {
+        console.warn('옵션 동기화 실패:', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBlurOn, isPopupOn, protectedUrls, optionsHydrated, urlsHydrated]);
+
+  // 보호 모드 토글
+  const handleProtectionToggle = () => {
+    const next = !isProtectionOn;
+    setIsProtectionOn(next);
+    (async () => {
       try {
         await chrome.runtime.sendMessage({
           type: 'TOGGLE_PROTECTION',
-          enabled: nextState,
-          urls: protectedUrls
+          enabled: next,
+          urls: protectedUrls,
+          options: { blur: isBlurOn, popup: isPopupOn }
         });
-      } catch (error) {
-        console.warn("백그라운드와 연결 실패:", error);
+      } catch (e) {
+        console.warn('보호모드 토글 실패:', e);
       }
-    };
-    toggleProtection();
+    })();
+  };
+
+  const toggleBlur = () => {
+    const next = !isBlurOn;
+    setIsBlurOn(next);
+    localStorage.setItem('isBlurOn', JSON.stringify(next));
+  };
+
+  const togglePopup = () => {
+    const next = !isPopupOn;
+    setIsPopupOn(next);
+    localStorage.setItem('isPopupOn', JSON.stringify(next));
   };
 
   return (
@@ -91,14 +153,18 @@ const Home = ({ setPage }) => {
                 <p className={styles.userName}>{userName}</p>
               </div>
             </div>
-            <div
-              className={`${styles.statusToggle} ${!isProtectionOn ? styles.off : ''}`}
-              onClick={handleProtectionToggle}
-              role="button"
-            >
-              <span className={styles.statusText}>
-                {isProtectionOn ? 'ON' : 'OFF'}
-              </span>
+
+            <div className={styles.headerActions}>
+              <div
+                className={`${styles.statusToggle} ${!isProtectionOn ? styles.off : ''}`}
+                onClick={handleProtectionToggle}
+                role="button"
+                aria-label="보호 모드 토글"
+              >
+                <span className={styles.statusText}>
+                  {isProtectionOn ? 'ON' : 'OFF'}
+                </span>
+              </div>
             </div>
           </header>
 
@@ -115,7 +181,12 @@ const Home = ({ setPage }) => {
               <p className={styles.countText}>{urlCount} 개</p>
             </div>
 
-            <div className={`${styles.card} ${styles.blurCard}`}>
+            <div
+              className={`${styles.card} ${styles.blurCard}`}
+              onClick={toggleBlur}
+              role="button"
+              title="블러 옵션 토글"
+            >
               <img src={blurIcon} alt="Blur Effect" className={styles.smallIcon} />
               <div className={styles.textGroup}>
                 <p>블러 효과</p>
@@ -125,7 +196,12 @@ const Home = ({ setPage }) => {
               </div>
             </div>
 
-            <div className={`${styles.card} ${styles.alertCard}`}>
+            <div
+              className={`${styles.card} ${styles.alertCard}`}
+              onClick={togglePopup}
+              role="button"
+              title="알림 팝업 옵션 토글"
+            >
               <img src={alertIcon} alt="Alert Popup" className={styles.smallIcon} />
               <div className={styles.textGroup}>
                 <p>알림 팝업</p>

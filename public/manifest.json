@@ -1,47 +1,36 @@
 {
+  "name": "SeeCure",
+  "version": "1.0.0",
   "manifest_version": 3,
-  "name": "Seecure",
-  "version": "1.0",
-  "description": "Seecurity",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting",
-    "offscreen"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "description": "당신의 정보를 타인으로부터 지켜드립니다.",
   "action": {
-    "default_title": "Seecure 실행", 
-    "default_icon": "logo.png"
+    "default_title": "SeeCure",
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "css": [
-        "content.css"
-      ]
-    }
+  "permissions": [
+    "scripting",
+    "notifications",
+    "offscreen",
+    "activeTab",
+    "storage"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "128": "icon-128.png"
+  },
   "web_accessible_resources": [
     {
       "resources": [
-        "popup.html",
-        "popup.js",
-        "popup.css"
+        "content.js",
+        "content.css",
+        "icon-128.png"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
   ]
 }

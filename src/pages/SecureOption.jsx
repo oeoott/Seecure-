@@ -1,23 +1,76 @@
 // src/pages/SecureOption.jsx
-
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Sidebar from './Sidebar.jsx';
-import '../SecureOption.css'; // 확장자 수정
+import '../SecureOption.css';
 
 const SecureOption = ({ setPage }) => {
   const [isBlurOn, setIsBlurOn] = useState(() => {
     const saved = localStorage.getItem('isBlurOn');
     return saved !== null ? JSON.parse(saved) : true;
   });
-
   const [isPopupOn, setIsPopupOn] = useState(() => {
     const saved = localStorage.getItem('isPopupOn');
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  const handleSave = () => {
+  // BG로부터 현재 옵션을 받아 초기화
+  const hydrateFromBG = useCallback(async () => {
+    try {
+      if (!chrome?.runtime?.sendMessage) return;
+      const res = await chrome.runtime.sendMessage({ type: 'GET_OPTIONS' });
+      if (res?.ok && res.options) {
+        const blur = !!res.options.blur;
+        const popup = !!res.options.popup;
+        setIsBlurOn(blur);
+        setIsPopupOn(popup);
+        // 로컬에도 동기화 (Home 등에서 참조 시 일관성)
+        localStorage.setItem('isBlurOn', JSON.stringify(blur));
+        localStorage.setItem('isPopupOn', JSON.stringify(popup));
+      }
+    } catch (e) {
+      // 확장 미로딩 등일 수 있으니 조용히 무시
+    }
+  }, []);
+
+  useEffect(() => {
+    hydrateFromBG();
+
+    // BG가 브로드캐스트하는 OPTIONS_CHANGED 수신 → 화면 즉시 반영
+    function onMsg(msg) {
+      if (msg?.type === 'OPTIONS_CHANGED' && msg.options) {
+        const blur = !!msg.options.blur;
+        const popup = !!msg.options.popup;
+        setIsBlurOn(blur);
+        setIsPopupOn(popup);
+        localStorage.setItem('isBlurOn', JSON.stringify(blur));
+        localStorage.setItem('isPopupOn', JSON.stringify(popup));
+      }
+    }
+    chrome?.runtime?.onMessage?.addListener?.(onMsg);
+    return () => {
+      chrome?.runtime?.onMessage?.removeListener?.(onMsg);
+    };
+  }, [hydrateFromBG]);
+
+  // 저장 버튼 → BG에 반영(SYNC_OPTIONS) + 로컬 반영
+  const handleSave = async () => {
     localStorage.setItem('isBlurOn', JSON.stringify(isBlurOn));
     localStorage.setItem('isPopupOn', JSON.stringify(isPopupOn));
+
+    try {
+      // 기존 URL 목록은 유지해야 하므로 BG에 현재 urls도 함께 넘기도록 GET_OPTIONS 먼저 호출
+      let urls = [];
+      try {
+        const r = await chrome.runtime.sendMessage({ type: 'GET_OPTIONS' });
+        if (r?.urls) urls = r.urls;
+      } catch {}
+
+      await chrome.runtime.sendMessage({
+        type: 'SYNC_OPTIONS',
+        options: { blur: isBlurOn, popup: isPopupOn },
+        urls
+      });
+    } catch {}
     alert('설정이 저장되었습니다!');
   };
 

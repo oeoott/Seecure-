@@ -1,63 +1,37 @@
-/* public/content.css */
-
-/* 전체 화면 블러 오버레이 */
+/* 기존 스타일 유지 */
 .seecure-blur-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483647; /* 최상단 */
-    pointer-events: none;
-    transition: backdrop-filter 0.3s ease;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  transition: backdrop-filter 0.3s ease;
 }
 
-/* 설정 팝업 컨테이너 (브라우저 아이콘 팝업과 동일한 디자인) */
-#seecure-control-popup {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 2147483647;
-    background-color: white;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    width: 280px;
-    padding: 12px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+/* === 우상단 경고 배너 === */
+@keyframes seecure-pop {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
-
-/* 팝업 내부 스타일 (popup.css에서 가져옴) */
-#seecure-popup-root {
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    width: 100%;
+.seecure-alert {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  max-width: 360px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ffefef;
+  color: #7a1212;
+  font: 500 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  z-index: 2147483648;         /* 오버레이보다 위 */
+  animation: seecure-pop .18s ease-out;
+  white-space: pre-line;       /* \n 줄바꿈 */
+  border: 1px solid rgba(193,18,31,.2);
+  pointer-events: none;
 }
-#seecure-popup-root header {
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-#seecure-popup-root .row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 10px 0;
-}
-#seecure-popup-root .lbl {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-#seecure-popup-root .full {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    background: #f5f5f5;
-    border-radius: 8px;
-    cursor: pointer;
-}
-#seecure-popup-root .full:hover { background: #eee; }
-#seecure-popup-root .small {
-    align-items: center;
-}
-#seecure-popup-root #blur-amount { flex: 1; }
-#seecure-popup-root #blur-amount-val { width: 24px; text-align: right; }
-#seecure-popup-root footer {
-    margin-top: 6px;
-    color: #666;
+.seecure-alert .title {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: #c1121f;
 }
