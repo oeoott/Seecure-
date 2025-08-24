@@ -7,18 +7,69 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node / build
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
+# Python virtual environments
+venv/
+.venv/
+edge-ai-backend-main/venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Python build
+*.egg-info/
+.eggs/
+build/
+develop-eggs/
+.installed.cfg
+
+# Large model / binary files
+*.onnx
+*.pt
+*.pth
+*.npy
+*.dll
+*.pyd
+*.lib
+models/
+edge-ai-backend-main/app/models/
+
+# Editor settings
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+venv/
+.venv/
+edge-ai-backend-main/venv/
+__pycache__/
+*.onnx
+*.pt
+*.pth
+*.npy
+*.dll
+*.pyd
+*.lib
+node_modules/
+dist/
+build/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
