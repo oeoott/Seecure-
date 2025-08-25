@@ -1,21 +1,23 @@
 # app/schemas.py
-from pydantic import BaseModel, EmailStr
-from datetime import datetime
-from typing import Optional, List
 
-# 🔽 UserBase 클래스의 email 타입을 EmailStr에서 str으로 변경했습니다.
+from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
+
+# --- User ---
 class UserBase(BaseModel):
-    email: str
+    email: str  # 기본 사용자 이메일
 
 class UserCreate(UserBase):
-    password: str
+    password: str  # 비밀번호
 
 class UserOut(UserBase):
     id: int
     created_at: datetime
     class Config:
-        from_attributes = True # orm_mode' is renamed to 'from_attributes'
+        from_attributes = True
 
+# --- Auth ---
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -23,6 +25,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+# --- Face ---
 class FaceBase(BaseModel):
     label: Optional[str] = None
 
@@ -36,9 +39,10 @@ class FaceOut(FaceBase):
     class Config:
         from_attributes = True
 
+# --- Protection ---
 class ProtectionBase(BaseModel):
-    url_pattern: str
-    mode: str
+    url_pattern: str  # URL 패턴
+    mode: str         # 보호 모드
 
 class ProtectionCreate(ProtectionBase):
     pass
@@ -49,8 +53,7 @@ class ProtectionOut(ProtectionBase):
     class Config:
         from_attributes = True
 
-# --- AI/ML Ops Schemas ---
-
+# --- URL Event ---
 class UrlEventBase(BaseModel):
     url: str
     timestamp: datetime
@@ -63,11 +66,13 @@ class UrlEventOut(UrlEventBase):
     class Config:
         from_attributes = True
 
+# --- Job ---
 class JobOut(BaseModel):
     message: str
     class Config:
         from_attributes = True
 
+# --- Training ---
 class TrainingJobOut(BaseModel):
     id: int
     status: str
@@ -76,6 +81,7 @@ class TrainingJobOut(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Optimized Model ---
 class OptimizeOut(BaseModel):
     id: int
     path: str
@@ -83,11 +89,12 @@ class OptimizeOut(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Inference ---
 class InferenceIn(BaseModel):
     x_coord: float
     y_coord: float
     url: str
 
 class InferenceOut(BaseModel):
-    action: str
-    reason: str
+    action: str   # 수행 동작
+    reason: str   # 근거

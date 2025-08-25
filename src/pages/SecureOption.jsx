@@ -1,9 +1,12 @@
 // src/pages/SecureOption.jsx
+// 보호 옵션 설정 페이지: 블러 효과/알림 팝업 설정을 BG와 동기화
+
 import React, { useEffect, useState, useCallback } from 'react';
 import Sidebar from './Sidebar.jsx';
 import '../SecureOption.css';
 
 const SecureOption = ({ setPage }) => {
+  // 초기 상태는 localStorage → 없으면 기본값 true
   const [isBlurOn, setIsBlurOn] = useState(() => {
     const saved = localStorage.getItem('isBlurOn');
     return saved !== null ? JSON.parse(saved) : true;
@@ -13,7 +16,7 @@ const SecureOption = ({ setPage }) => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // BG로부터 현재 옵션을 받아 초기화
+  // BG에서 현재 옵션 가져오기
   const hydrateFromBG = useCallback(async () => {
     try {
       if (!chrome?.runtime?.sendMessage) return;
@@ -23,19 +26,18 @@ const SecureOption = ({ setPage }) => {
         const popup = !!res.options.popup;
         setIsBlurOn(blur);
         setIsPopupOn(popup);
-        // 로컬에도 동기화 (Home 등에서 참조 시 일관성)
         localStorage.setItem('isBlurOn', JSON.stringify(blur));
         localStorage.setItem('isPopupOn', JSON.stringify(popup));
       }
-    } catch (e) {
-      // 확장 미로딩 등일 수 있으니 조용히 무시
+    } catch {
+      // 확장 미로딩 등일 수 있으니 무시
     }
   }, []);
 
   useEffect(() => {
     hydrateFromBG();
 
-    // BG가 브로드캐스트하는 OPTIONS_CHANGED 수신 → 화면 즉시 반영
+    // BG에서 옵션 변경 브로드캐스트 받기
     function onMsg(msg) {
       if (msg?.type === 'OPTIONS_CHANGED' && msg.options) {
         const blur = !!msg.options.blur;
@@ -52,13 +54,12 @@ const SecureOption = ({ setPage }) => {
     };
   }, [hydrateFromBG]);
 
-  // 저장 버튼 → BG에 반영(SYNC_OPTIONS) + 로컬 반영
+  // 저장 → 로컬 + BG에 동기화
   const handleSave = async () => {
     localStorage.setItem('isBlurOn', JSON.stringify(isBlurOn));
     localStorage.setItem('isPopupOn', JSON.stringify(isPopupOn));
 
     try {
-      // 기존 URL 목록은 유지해야 하므로 BG에 현재 urls도 함께 넘기도록 GET_OPTIONS 먼저 호출
       let urls = [];
       try {
         const r = await chrome.runtime.sendMessage({ type: 'GET_OPTIONS' });
@@ -85,6 +86,7 @@ const SecureOption = ({ setPage }) => {
         </main>
 
         <section className="secure-options-container">
+          {/* 블러 옵션 */}
           <div className="secure-option-item">
             <span className="secure-option-title">화면 블러 효과</span>
             <div className="secure-toggle-switch">
@@ -101,6 +103,7 @@ const SecureOption = ({ setPage }) => {
             </div>
           </div>
 
+          {/* 팝업 옵션 */}
           <div className="secure-option-item">
             <span className="secure-option-title">경고 알림 팝업</span>
             <div className="secure-toggle-switch">

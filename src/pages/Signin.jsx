@@ -1,14 +1,16 @@
 // src/pages/Signin.jsx
+// 회원가입 페이지: 입력값 검증 후 API 연동하여 신규 계정 생성
+
 import React, { useState } from 'react';
 import logo from '../assets/logo_eye.png';
-import api from '../api'; // ⭐️ api 모듈 import
+import api from '../api';
 
 function Signin({ setPage }) {
-  const [id, setId] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [id, setId] = useState('');                  // 이메일(ID)
+  const [password, setPassword] = useState('');      // 비밀번호
+  const [confirmPassword, setConfirmPassword] = useState(''); // 비밀번호 확인
 
-  // ⭐️ 회원가입 로직을 API 연동으로 수정
+  // 회원가입 처리
   const handleSignup = async () => {
     if (!id.trim() || !password.trim()) {
       alert('ID(이메일)와 비밀번호를 모두 입력해주세요.');
@@ -20,7 +22,7 @@ function Signin({ setPage }) {
     }
 
     try {
-      // 백엔드의 POST /api/v1/auth/signup 엔드포인트 호출
+      // POST /api/v1/auth/signup 호출
       await api.post('/api/v1/auth/signup', {
         email: id.trim(),
         password: password,
@@ -28,7 +30,6 @@ function Signin({ setPage }) {
 
       alert('회원가입이 성공적으로 완료되었습니다.');
       setPage('success'); // 성공 페이지로 이동
-
     } catch (error) {
       if (error.response && error.response.data && error.response.data.detail) {
         alert(`회원가입 실패: ${error.response.data.detail}`);
@@ -39,7 +40,6 @@ function Signin({ setPage }) {
     }
   };
 
-  // ... 이하 JSX 코드는 동일 ...
   return (
     <div
       style={{
@@ -54,64 +54,43 @@ function Signin({ setPage }) {
         color: '#054071',
       }}
     >
-      {/* 로고 및 타이틀 */}
+      {/* 로고 */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-        <img
-          src={logo}
-          alt="logo"
-          style={{ width: 53, height: 33, marginRight: 8 }}
-        />
+        <img src={logo} alt="logo" style={{ width: 53, height: 33, marginRight: 8 }} />
         <div style={{ fontSize: 24, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
       </div>
 
-      {/* 회원가입 안내 */}
+      {/* 안내 */}
       <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>회원 가입</h2>
       <p style={{ fontSize: 14, marginTop: 4, marginBottom: 20 }}>
         ID와 Password를 입력하세요.
       </p>
 
-      {/* 회원가입 폼 */}
+      {/* 입력 폼 */}
       <div style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input
           type="text"
           placeholder="ID"
           value={id}
           onChange={(e) => setId(e.target.value)}
-          style={{
-            height: 40,
-            padding: '0 12px',
-            borderRadius: 6,
-            border: '1px solid #E0E0E0',
-            fontSize: 14,
-          }}
+          style={{ height: 40, padding: '0 12px', borderRadius: 6, border: '1px solid #E0E0E0', fontSize: 14 }}
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{
-            height: 40,
-            padding: '0 12px',
-            borderRadius: 6,
-            border: '1px solid #E0E0E0',
-            fontSize: 14,
-          }}
+          style={{ height: 40, padding: '0 12px', borderRadius: 6, border: '1px solid #E0E0E0', fontSize: 14 }}
         />
         <input
           type="password"
           placeholder="Confirm Password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          style={{
-            height: 40,
-            padding: '0 12px',
-            borderRadius: 6,
-            border: '1px solid #E0E0E0',
-            fontSize: 14,
-          }}
+          style={{ height: 40, padding: '0 12px', borderRadius: 6, border: '1px solid #E0E0E0', fontSize: 14 }}
         />
         <button
+          onClick={handleSignup}
           style={{
             height: 40,
             backgroundColor: '#1171C0',
@@ -122,7 +101,6 @@ function Signin({ setPage }) {
             fontWeight: 500,
             cursor: 'pointer',
           }}
-          onClick={handleSignup}
         >
           Sign in
         </button>

@@ -8,7 +8,8 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/index.js",
+    "type": "module"
   },
   "permissions": [
     "scripting",
@@ -17,20 +18,22 @@
     "activeTab",
     "storage"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "icons": {
     "128": "icon-128.png"
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "content.js",
-        "content.css",
-        "icon-128.png"
-      ],
+      "resources": ["content.js", "content.css", "icon-128.png"],
       "matches": ["<all_urls>"]
+    }
+  ],
+  "offscreen_documents": [
+    {
+      "page": "offscreen.html",
+      "matches": ["<all_urls>"],
+      "reason": "USER_MEDIA",
+      "justification": "웹캠 프레임 캡처"
     }
   ]
 }

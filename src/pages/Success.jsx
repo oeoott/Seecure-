@@ -1,4 +1,6 @@
 // src/pages/Success.jsx
+// 회원가입 완료 페이지: 가입 완료 메시지와 로그인 페이지 이동 버튼 제공
+
 import React from 'react';
 import logo from '../assets/logo_eye.png';
 
@@ -19,17 +21,13 @@ function Success({ setPage }) {
         gap: 24,
       }}
     >
-      {/* 로고 및 타이틀 */}
+      {/* 로고 */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img
-          src={logo}
-          alt="logo"
-          style={{ width: 50, height: 30, marginRight: 8 }}
-        />
+        <img src={logo} alt="logo" style={{ width: 50, height: 30, marginRight: 8 }} />
         <div style={{ fontSize: 32, fontWeight: 600, color: '#1171C0' }}>See Cure</div>
       </div>
 
-      {/* 메시지 */}
+      {/* 완료 메시지 */}
       <div>
         <h1 style={{ fontSize: 36, margin: 0, fontWeight: 600 }}>회원 가입 완료!</h1>
         <p style={{ fontSize: 20, marginTop: 8 }}>
@@ -37,7 +35,7 @@ function Success({ setPage }) {
         </p>
       </div>
 
-      {/* 로그인하기 버튼 → 로그인 페이지로 이동 */}
+      {/* 로그인 버튼 */}
       <button
         onClick={() => setPage('login')}
         style={{

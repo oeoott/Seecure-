@@ -1,12 +1,10 @@
 /* Sidebar.css - Hover Effect Added */
 
-/* 기본 폰트 크기를 16px로 가정하고, 모든 px 단위를 rem으로 변환했습니다. (1rem = 16px) */
-
 /* Sidebar Container */
 .sidebar {
   width: 16.25rem; /* 260px */
   height: 100vh;
-  position: fixed; /* position을 fixed로 변경하여 스크롤과 무관하게 고정 */
+  position: fixed;
   left: 0;
   top: 0;
   background: #054071;
@@ -14,23 +12,23 @@
   display: flex;
   flex-direction: column;
   font-family: 'Inter', sans-serif;
-  z-index: 1000; /* 다른 요소에 가려지지 않도록 z-index 설정 */
+  z-index: 1000;
 }
 
 /* Logo */
 .logo-area {
   height: 4.875rem; /* 78px */
-  padding: 0 1rem; /* 16px */
+  padding: 0 1rem;
   display: flex;
   align-items: center;
-  gap: 1rem; /* 16px */
+  gap: 1rem;
   flex-shrink: 0;
 }
 
 .logo-text {
   margin: 0;
   color: white;
-  font-size: 1.5rem; /* 24px */
+  font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -43,34 +41,33 @@
 
 /* Navigation */
 .nav-container {
-  padding: 0 0.5rem; /* 8px */
+  padding: 0 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* 4px */
+  gap: 0.25rem;
 }
 
 .nav-item {
   height: 2.5rem; /* 40px */
-  padding: 0 1rem; /* 16px */
-  border-radius: 0.5rem; /* 8px */
+  padding: 0 1rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem; /* 16px */
+  gap: 1rem;
   cursor: pointer;
   color: #054071;
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.5;
-  /* ✨ 움직임 효과를 위한 transition 속성 추가 */
   transition: background-color 0.2s, transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-/* ✨ 메인 메뉴 아이템 (흰색 버튼) */
+/* 메인 메뉴 아이템 */
 .nav-item.main {
   background: white;
 }
 
-/* ✨ 메인 메뉴에 마우스를 올렸을 때 효과 */
+/* 메인 메뉴 hover 효과 */
 .nav-item.main:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -81,8 +78,8 @@
 }
 
 .nav-icon {
-  width: 1.5rem; /* 24px */
-  height: 1.5rem; /* 24px */
+  width: 1.5rem;
+  height: 1.5rem;
   flex-shrink: 0;
 }
 
@@ -93,40 +90,40 @@
   text-overflow: ellipsis;
 }
 
+/* 하단 로그아웃 영역 */
 .login-area {
-  margin-top: auto; /* 하단에 고정시키기 위해 변경 */
-  padding: 1.25rem 1.375rem; /* 20px 22px */
+  margin-top: auto;
+  padding: 1.25rem 1.375rem;
 }
 
 .logout-button {
-  height: 2.5rem; /* 40px */
+  height: 2.5rem;
   padding: 0 1.5rem; 
   background: #1393DB;
-  border-radius: 0.5rem; /* 8px */
+  border-radius: 0.5rem;
   border: none;
   color: white;
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   cursor: pointer;
 }
 
+/* 서브 메뉴 */
 .submenu-container {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* 4px */
-  padding-left: 1.5rem; /* 24px */
+  gap: 0.25rem;
+  padding-left: 1.5rem;
   margin: 0.25rem 0;
 }
 
-/* 서브 메뉴 아이템 */
 .nav-item.sub {
   background: transparent;
   color: white;
-  padding-left: 1rem; /* 16px */
+  padding-left: 1rem;
 }
 
-/* 서브 메뉴에 마우스를 올렸을 때 효과 */
 .nav-item.sub:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: none;

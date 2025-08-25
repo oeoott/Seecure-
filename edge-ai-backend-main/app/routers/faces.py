@@ -1,4 +1,5 @@
 # app/routers/faces.py
+# 얼굴 등록/조회/삭제 라우터
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -11,6 +12,7 @@ from app.routers.auth import get_current_user
 
 router = APIRouter()
 
+# 등록된 얼굴 목록 조회
 @router.get("/", response_model=list[schemas.FaceOut])
 def list_faces(
     db: Session = Depends(get_db),
@@ -18,6 +20,7 @@ def list_faces(
 ):
     return crud.get_faces_by_user(db, current_user.id)
 
+# 얼굴 등록
 @router.post("/", response_model=schemas.FaceOut, status_code=status.HTTP_201_CREATED)
 def add_face(
     face_in: schemas.FaceCreate,
@@ -26,6 +29,7 @@ def add_face(
 ):
     return crud.create_face(db, current_user.id, face_in)
 
+# 얼굴 삭제
 @router.delete("/{face_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_face(
     face_id: int,
@@ -43,9 +47,8 @@ def remove_face(
             detail="해당 얼굴 데이터를 찾을 수 없거나 권한이 없습니다."
         )
     
-    # crud.delete_face 함수에 user_id를 전달하여 TypeError를 해결
-    # crud.delete_face(db, face_id) # <- 기존 코드
-    crud.delete_face(db=db, face_id=face_id, user_id=current_user.id) # <- 수정된 코드
+    # 사용자 권한 검증 후 삭제
+    crud.delete_face(db=db, face_id=face_id, user_id=current_user.id)
 
-    # status_code가 204일 때는 응답 본문을 보내지 않으므로 None을 리턴
+    # 204 응답에서는 본문을 리턴하지 않음
     return None

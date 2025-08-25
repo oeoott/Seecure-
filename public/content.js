@@ -1,4 +1,4 @@
-// content.js — 블러 오버레이만 담당(알림은 BG에서만 띄움)
+//public/content.js
 (() => {
   console.log("✅ Seecure content loaded");
 
@@ -7,6 +7,7 @@
 
   const imp = (el, prop, val) => el.style.setProperty(prop, String(val), "important");
 
+  // 오버레이 생성
   function ensureOverlay() {
     if (!overlay) {
       overlay = document.createElement("div");
@@ -16,10 +17,14 @@
     }
     updateOverlay();
   }
+
+  // 오버레이 제거
   function removeOverlay() {
     overlay?.remove();
     overlay = null;
   }
+
+  // 오버레이 스타일 업데이트
   function updateOverlay() {
     if (!overlay) return;
     imp(overlay, "position", "fixed");
@@ -42,6 +47,7 @@
     }
   }
 
+  // 커서 위치에 블러 적용
   document.addEventListener("mousemove", (e) => {
     if (state.cursorBlur && overlay) {
       imp(overlay, "left", `${e.clientX}px`);
@@ -50,6 +56,7 @@
     }
   }, { passive: true });
 
+  // BG → Content 메시지 처리
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     switch (msg?.type) {
       case "APPLY_BLUR":

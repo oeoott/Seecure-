@@ -1,9 +1,0 @@
-# python virtual environment
-.venv/
-
-# python cahce
-__pycache__/
-*.__pyc
-
-# pytorch model
-*.pt

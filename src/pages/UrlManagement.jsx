@@ -1,4 +1,5 @@
 // src/pages/UrlManagement.jsx
+// 등록된 보호 URL 목록 조회 및 삭제 관리 페이지
 
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar.jsx';
@@ -6,8 +7,9 @@ import styles from '../UrlManagement.module.css';
 import api from '../api';
 
 const UrlManagement = ({ setPage }) => {
-  const [urls, setUrls] = useState([]);
+  const [urls, setUrls] = useState([]); // 등록된 URL 목록 상태
 
+  // URL 목록 불러오기
   useEffect(() => {
     const fetchUrls = async () => {
       try {
@@ -18,7 +20,6 @@ const UrlManagement = ({ setPage }) => {
         }));
         setUrls(fetchedUrls);
       } catch (error) {
-        // ⭐️ 수정된 부분
         console.error("Failed to fetch URLs:", error);
         if (error.response && error.response.status === 401) {
           alert('인증 정보가 유효하지 않습니다. 다시 로그인해주세요.');
@@ -31,6 +32,7 @@ const UrlManagement = ({ setPage }) => {
     fetchUrls();
   }, [setPage]);
 
+  // URL 삭제
   const handleDelete = async (idToDelete) => {
     if (window.confirm('정말 이 URL을 삭제하시겠습니까?')) {
       try {
@@ -38,7 +40,6 @@ const UrlManagement = ({ setPage }) => {
         setUrls(currentUrls => currentUrls.filter(url => url.id !== idToDelete));
         alert('삭제되었습니다.');
       } catch (error) {
-        // ⭐️ 수정된 부분
         console.error("Failed to delete URL:", error);
         if (error.response && error.response.status === 401) {
           alert('인증 정보가 유효하지 않습니다. 다시 로그인해주세요.');
@@ -62,7 +63,10 @@ const UrlManagement = ({ setPage }) => {
           {urls.map(item => (
             <div key={item.id} className={styles.urlItem}>
               <span className={styles.urlText} title={item.url}>{item.url}</span>
-              <button className={styles.deleteButton} onClick={() => handleDelete(item.id)}>
+              <button
+                className={styles.deleteButton}
+                onClick={() => handleDelete(item.id)}
+              >
                 삭제
               </button>
             </div>

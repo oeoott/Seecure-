@@ -9,7 +9,7 @@
 
 .contentWrapper {
   flex-grow: 1;
-  margin-left: 260px; /* 사이드바 너비 */
+  margin-left: 260px;
   padding: 3rem;
   box-sizing: border-box;
   display: flex;

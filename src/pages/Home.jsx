@@ -1,3 +1,6 @@
+// src/pages/Home.jsx
+// 대시보드 메인 페이지: 보호 모드, 등록 얼굴 수, 보호 URL 수, 옵션(블러/팝업) 관리
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar.jsx';
 import styles from '../Home.module.css';
@@ -12,19 +15,21 @@ import alertIcon from '../assets/icon_home_bell.png';
 const Home = ({ setPage }) => {
   const userName = "사용자";
 
+  // 보호 모드 및 옵션 상태
   const [isProtectionOn, setIsProtectionOn] = useState(false);
   const [isBlurOn, setIsBlurOn] = useState(true);
   const [isPopupOn, setIsPopupOn] = useState(true);
 
+  // 등록된 데이터 수
   const [faceCount, setFaceCount] = useState(0);
   const [urlCount, setUrlCount] = useState(0);
   const [protectedUrls, setProtectedUrls] = useState([]);
 
-  // 하이드레이트 완료 플래그
+  // 하이드레이트 완료 여부
   const [optionsHydrated, setOptionsHydrated] = useState(false);
   const [urlsHydrated, setUrlsHydrated] = useState(false);
 
-  // 대시보드 및 URL 목록 로드 (서버가 권위)
+  // 대시보드/URL 데이터 불러오기 (서버 권위)
   const fetchDashboardData = useCallback(async () => {
     try {
       const [facesResponse, urlsResponse] = await Promise.all([
@@ -42,11 +47,11 @@ const Home = ({ setPage }) => {
     }
   }, [setPage]);
 
-  // 최초 로드: 서버 URL/대시보드 + BG 보호상태 + BG 옵션 하이드레이트
+  // 최초 로드: 서버 데이터 + BG 옵션/상태 하이드레이트
   useEffect(() => {
     fetchDashboardData();
 
-    // 1) BG의 옵션이 '단일 소스'가 되게 먼저 읽어온다.
+    // 옵션 동기화
     (async () => {
       try {
         const res = await chrome.runtime.sendMessage({ type: 'GET_OPTIONS' });
@@ -55,7 +60,6 @@ const Home = ({ setPage }) => {
           const popup = !!res.options.popup;
           setIsBlurOn(blur);
           setIsPopupOn(popup);
-          // Home/다른 화면 일관성을 위해 로컬에도 반영 (선택)
           localStorage.setItem('isBlurOn', JSON.stringify(blur));
           localStorage.setItem('isPopupOn', JSON.stringify(popup));
         }
@@ -63,7 +67,7 @@ const Home = ({ setPage }) => {
       setOptionsHydrated(true);
     })();
 
-    // 2) 보호 모드 현재 상태
+    // 보호 모드 상태 불러오기
     (async () => {
       try {
         const res = await chrome.runtime.sendMessage({ type: 'GET_PROTECTION_STATUS' });
@@ -74,7 +78,7 @@ const Home = ({ setPage }) => {
     })();
   }, [fetchDashboardData]);
 
-  // BG → Home 실시간 반영 (팝업/옵션 페이지에서 바꿔도 즉시 업데이트)
+  // BG → Home 옵션 변경 이벤트 수신
   useEffect(() => {
     const onMsg = (msg) => {
       if (msg?.type === 'OPTIONS_CHANGED' && msg.options) {
@@ -92,9 +96,9 @@ const Home = ({ setPage }) => {
     return () => chrome?.runtime?.onMessage?.removeListener?.(onMsg);
   }, []);
 
-  // ✅ 옵션/URL 동기화: 옵션/URL이 '모두' 하이드레이트된 뒤에만 BG로 SYNC
+  // 옵션/URL 동기화 (모두 하이드레이트된 후만)
   useEffect(() => {
-    if (!optionsHydrated || !urlsHydrated) return; // 초기 덮어쓰기 방지
+    if (!optionsHydrated || !urlsHydrated) return;
     (async () => {
       try {
         await chrome.runtime.sendMessage({
@@ -127,12 +131,12 @@ const Home = ({ setPage }) => {
     })();
   };
 
+  // 옵션 토글
   const toggleBlur = () => {
     const next = !isBlurOn;
     setIsBlurOn(next);
     localStorage.setItem('isBlurOn', JSON.stringify(next));
   };
-
   const togglePopup = () => {
     const next = !isPopupOn;
     setIsPopupOn(next);
@@ -145,6 +149,7 @@ const Home = ({ setPage }) => {
 
       <main className={styles.mainContainer}>
         <div className={styles.contentWrapper}>
+          {/* 상단 사용자/보호 모드 패널 */}
           <header className={styles.userPanel}>
             <div className={styles.userInfo}>
               <img src={userAvatar} alt="User Avatar" className={styles.avatar} />
@@ -153,7 +158,6 @@ const Home = ({ setPage }) => {
                 <p className={styles.userName}>{userName}</p>
               </div>
             </div>
-
             <div className={styles.headerActions}>
               <div
                 className={`${styles.statusToggle} ${!isProtectionOn ? styles.off : ''}`}
@@ -168,6 +172,7 @@ const Home = ({ setPage }) => {
             </div>
           </header>
 
+          {/* 대시보드 카드 */}
           <section className={styles.dashboardGrid}>
             <div className={`${styles.card} ${styles.faceCard} ${styles.imageTop}`}>
               <img src={faceIdIcon} alt="Face ID" className={styles.largeIcon} />

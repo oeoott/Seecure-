@@ -1,3 +1,6 @@
+// src/pages/Sidebar.jsx
+// 사이드바 컴포넌트: 페이지 네비게이션, 서브메뉴 토글, 로그아웃 처리
+
 import React, { useState } from 'react';
 import '../Sidebar.css';
 import logoImage from '../assets/logo.png';
@@ -7,20 +10,22 @@ import urlIcon from '../assets/icon_url.png';
 import shieldIcon from '../assets/icon_shield.png';
 
 const Sidebar = ({ currentPage, setPage }) => {
-  const [isUrlMenuOpen, setIsUrlMenuOpen] = useState(currentPage.startsWith('Url'));
-  const [isFaceMenuOpen, setIsFaceMenuOpen] = useState(currentPage.startsWith('Face'));
+  const [isUrlMenuOpen, setIsUrlMenuOpen] = useState(currentPage.startsWith('Url'));   // URL 메뉴 토글 상태
+  const [isFaceMenuOpen, setIsFaceMenuOpen] = useState(currentPage.startsWith('Face')); // 얼굴 메뉴 토글 상태
 
+  // 페이지 이동
   const handlePageNavigate = (pageName) => {
     setPage(pageName);
   };
 
+  // 로그아웃 처리
   const handleLogout = () => {
-    // 로그인 상태 삭제
-    localStorage.removeItem('token'); // 실제 키 이름에 따라 수정
+    localStorage.removeItem('token'); // 토큰 삭제
     alert('로그아웃 되었습니다.');
     setPage('login'); // 로그인 페이지로 이동
   };
 
+  // 상위 메뉴
   const navItems = [
     { name: "홈", page: "Home", icon: homeIcon },
     { name: "얼굴 등록", page: "FaceRegistration", icon: faceIcon },
@@ -28,11 +33,13 @@ const Sidebar = ({ currentPage, setPage }) => {
     { name: "보호 옵션", page: "SecureOption", icon: shieldIcon },
   ];
 
+  // URL 서브메뉴
   const urlSubItems = [
     { name: "URL 등록", page: "UrlRegistration" },
     { name: "등록 URL 관리", page: "UrlManagement" },
   ];
 
+  // 얼굴 서브메뉴
   const faceSubItems = [
     { name: "얼굴 등록", page: "FaceRegistration" },
     { name: "등록 얼굴 관리", page: "FaceManagement" },
@@ -40,11 +47,13 @@ const Sidebar = ({ currentPage, setPage }) => {
 
   return (
     <aside className="sidebar">
+      {/* 로고 */}
       <div className="logo-area">
         <img className="logo-image" src={logoImage} alt="SeeCure logo" />
         <h1 className="logo-text">SeeCure</h1>
       </div>
 
+      {/* 네비게이션 */}
       <nav className="nav-container">
         {navItems.map((item) => {
           // 얼굴 등록 메뉴
@@ -117,6 +126,7 @@ const Sidebar = ({ currentPage, setPage }) => {
         })}
       </nav>
 
+      {/* 로그아웃 버튼 */}
       <div className="login-area">
         <button className="logout-button" onClick={handleLogout}>logout</button>
       </div>

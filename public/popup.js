@@ -1,3 +1,6 @@
+// public/popup.js
+// 팝업 페이지 스크립트: 로그인 가드, 보호 모드/옵션 동기화
+
 document.addEventListener("DOMContentLoaded", async () => {
   const elProt   = document.getElementById("toggle-protection");
   const elBlur   = document.getElementById("toggle-blur");
@@ -9,12 +12,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 인앱 열기
   const openHome = async () => {
-    const url = chrome.runtime.getURL("index.html"); // 빌드 산출물이면 "app/index.html"
+    const url = chrome.runtime.getURL("index.html"); // 빌드 결과물이면 "app/index.html"
     try { await chrome.tabs.create({ url }); } catch(e) { console.warn(e); }
   };
   btnHome.addEventListener("click", openHome);
 
-  // 로그인 여부 판단 (인앱이 쓰는 localStorage 'token')
+  // 로그인 여부 판단 (인앱 localStorage 'token' 사용)
   const isLoggedIn = !!localStorage.getItem('token');
 
   // 로그인 가드 적용
@@ -35,11 +38,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   applyLoginGuard(isLoggedIn);
-  if (!isLoggedIn) return; // 미로그인 시 BG와 통신하지 않음
+  if (!isLoggedIn) return; // 미로그인 → BG와 통신하지 않음
 
-  // ====== 로그인 상태일 때만 아래 진행 ======
+  // ===== 로그인 상태일 때만 실행 =====
 
-  // 초기 하이드레이트
+  // 초기 상태 하이드레이트
   try {
     const res = await chrome.runtime.sendMessage({ type: "GET_OPTIONS" });
     if (res?.ok) {
@@ -74,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) { console.warn(e); }
   });
 
-  // 옵션 동기화 공통 함수
+  // 옵션 동기화 함수
   async function syncOptionsFromPopup(extra = {}) {
     try {
       const r = await chrome.runtime.sendMessage({ type: "GET_OPTIONS" });
@@ -90,21 +93,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         urls
       };
       await chrome.runtime.sendMessage(payload);
-      // 인앱에서도 참조할 수 있게 로컬 반영(선택)
+      // 인앱에서도 참조할 수 있도록 로컬 반영
       localStorage.setItem('isBlurOn', JSON.stringify(elBlur.checked));
       localStorage.setItem('isPopupOn', JSON.stringify(elPopup.checked));
       localStorage.setItem('blurAmount', String(elRange.value));
     } catch (e) { console.warn(e); }
   }
 
-  // 체크박스 변경 → 동기화
+  // 체크박스 변경 시 옵션 동기화
   elBlur.addEventListener("change", () => syncOptionsFromPopup());
   elPopup.addEventListener("change", () => syncOptionsFromPopup());
 
-  // 슬라이더 표시값 실시간 업데이트
+  // 슬라이더 값 표시 및 동기화
   elRange.addEventListener("input", () => {
     elRangeV.textContent = String(elRange.value);
   });
-  // 슬라이더 값 확정 시 동기화
   elRange.addEventListener("change", () => syncOptionsFromPopup());
 });

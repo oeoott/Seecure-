@@ -1,7 +1,9 @@
 // src/App.jsx
+// App 컴포넌트: currentPage 상태에 따라 각 페이지를 렌더링하는 제어 컴포넌트
+
 import React from "react";
 
-// 페이지 컴포넌트들
+// 페이지 컴포넌트 import
 import Login from "./pages/Login.jsx";
 import Signin from "./pages/Signin.jsx";
 import Home from "./pages/Home.jsx";
@@ -12,11 +14,6 @@ import FaceManagement from "./pages/FaceManagement.jsx";
 import SecureOption from "./pages/SecureOption.jsx";
 import Success from "./pages/Success.jsx";
 
-/**
- * 중요: App은 "제어 컴포넌트"
- * - 내부에서 page 상태를 새로 만들지 않는다.
- * - 부모(main.jsx)로부터 받은 currentPage / setPage만 사용한다.
- */
 export default function App({ currentPage, setPage }) {
   switch (currentPage) {
     case "Home":

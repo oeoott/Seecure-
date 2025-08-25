@@ -1,20 +1,20 @@
 # app/routers/ai.py
+# 얼굴 등록/탐지용 AI 라우터
+
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import numpy as np
 import cv2
 
-#nInsightFace 기반 서비스 사용
+# InsightFace 기반 서비스
 from app.detection.ai_service_insightface import AIService
 
 router = APIRouter()
 svc = AIService()
 
-
 @router.post("/register-face")
 async def register_face(file: UploadFile = File(...)):
     """
-    폼데이터의 이미지 파일(웹캠 캡쳐 프레임 등)을 받아
-    가장 큰 얼굴 1개로 임베딩을 등록합니다.
+    업로드된 이미지에서 가장 큰 얼굴 1개를 추출하여 임베딩 등록
     """
     data = await file.read()
     arr = np.frombuffer(data, dtype=np.uint8)
@@ -24,26 +24,24 @@ async def register_face(file: UploadFile = File(...)):
     ok = svc.register_face(frame)
     return {"success": ok}
 
-
 @router.post("/detect-frame")
 async def detect_frame(file: UploadFile = File(...)):
     """
-    폼데이터의 이미지 파일을 받아 침입자 여부를 판별합니다.
-    반환: {"intruder_alert": True|False} 또는 {"error": "..."}
+    업로드된 이미지에서 침입자 여부 판별
+    반환: {"intruder_alert": True|False}
     """
-   # print("클라이언트로 부터 이미지 수신. AI 감지를 시작합니다.") # 디버깅 용 print문
     data = await file.read()
     arr = np.frombuffer(data, dtype=np.uint8)
     frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if frame is None:
         raise HTTPException(status_code=400, detail="Invalid image")
-    result = svc.detect_intrusion(frame)
-    return result
+    return svc.detect_intrusion(frame)
 
-
-# (옵션) 심사용/디버그용: 현재 사용 가능한 EP 목록 확인
 @router.get("/debug/providers")
 def debug_providers():
+    """
+    디버그: ONNX Runtime에서 사용 가능한 EP 목록 조회
+    """
     try:
         import onnxruntime as ort
         return {"available": ort.get_available_providers()}
