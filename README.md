@@ -71,7 +71,8 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 
 * **Git**: [공식 사이트](https://git-scm.com/downloads)에서 다운로드하여 설치합니다.
 * **Node.js**: [공식 사이트](https://nodejs.org/en)에서 **LTS 버전**을 다운로드하여 설치합니다.
-* **Python**: [공식 사이트](https://www.python.org/downloads/)에서 3.10.11 버젼을 다운로드하여 설치합니다. 설치 첫 화면에서 **`Add python.exe to PATH`** 체크박스를 반드시 클릭해야 합니다.
+* **Python**: [공식 사이트](https://www.python.org/downloads/)에서 3.10.11 버젼을 다운로드하여 설치합니다.
+    * 설치 첫 화면에서 **`Add python.exe to PATH`** 체크박스를 반드시 클릭해야 합니다.
 * **PostgreSQL**: [공식 사이트](https://www.postgresql.org/download/)에서 다운로드하여 설치합니다.
     * 설치 중 비밀번호를 설정하는 화면이 나옵니다. 0425로 설정해주세요.
 * **Visual Studio Code**: [공식 사이트](https://code.visualstudio.com/)에서 다운로드하여 설치하고, **Python 확장 프로그램**을 설치합니다.
