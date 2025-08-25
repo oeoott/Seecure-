@@ -142,10 +142,8 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 5.  `DATABASE_URL` 변수의 `user`와 `pw` 부분을 본인이 PostgreSQL 설치 시 설정한 사용자 이름과 비밀번호로 수정합니다.
    * 예시: 사용자 이름이 postgres이고 비밀번호가 0425인 경우
     ```powershell
-
-    DATABASE_URL = "postgresql://postgres:0425@localhost:5432/edgeai"
+      DATABASE_URL = "postgresql://postgres:0425@localhost:5432/edgeai"
     ```
-
 ---
 
 ### 4단계: 프론트엔드 설정 (터미널 2)
