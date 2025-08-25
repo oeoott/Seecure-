@@ -91,7 +91,7 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 
 ### 2단계: 백엔드 설정 (터미널 1)
 
-1.  VS Code에서 새 터미널을 엽니다. (`Ctrl` + `)
+1.  VS Code에서 새 터미널을 엽니다. (`Ctrl` + ` )
 2.  백엔드 폴더로 이동합니다.
     ```powershell
     cd .\edge-ai-backend-main\
