@@ -140,8 +140,8 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 3.  `Database` 이름에 **`edgeai`** 라고 입력하고 저장합니다.
 4.  VS Code에서 `edge-ai-backend-main/app/database.py` 파일을 엽니다.
 5.  `DATABASE_URL` 변수의 `user`와 `pw` 부분을 본인이 PostgreSQL 설치 시 설정한 사용자 이름과 비밀번호로 수정합니다.
+   * 예시: 사용자 이름이 postgres이고 비밀번호가 0425인 경우
     ```python
-    # 예시: 사용자 이름이 postgres이고 비밀번호가 0425인 경우
     DATABASE_URL = "postgresql://postgres:0425@localhost:5432/edgeai"
     ```
 
