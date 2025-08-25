@@ -215,6 +215,14 @@ AI 모델이 정상적으로 동작하는지 확인하기 위해, 브라우저 �
 > ```
 
 ---
+## 오픈소스 사용 내역
+
+본 프로젝트는 다음과 같은 오픈소스 라이브러리를 사용합니다:
+
+- [insightface](https://github.com/deepinsight/insightface) — Apache License 2.0
+- [FastAPI](https://github.com/tiangolo/fastapi) — MIT License
+- [React](https://github.com/facebook/react) — MIT License
+
 
 ## 오픈소스 라이선스
 
