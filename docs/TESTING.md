@@ -43,18 +43,18 @@ SECRET_KEY=your-secret-key
 ## 4. 테스트 시나리오 (End-to-End)
 
 ### 1. 백엔드 서버 실행
-	```powershell
+```powershell
 	uvicorn app.main:app --reload
-	```
+```
 → Uvicorn running on http://127.0.0.1:8000 메시지 확인
 
 ### 2. 프론트엔드 빌드
-	```powershell
+```powershell
 	npm run build
-	```
+```
 → dist/ 폴더 생성 확인
 
-###3. 확장프로그램 로드
+### 3. 확장프로그램 로드
 
 * Chrome → chrome://extensions
 
