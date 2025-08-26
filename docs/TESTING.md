@@ -53,29 +53,29 @@ SECRET_KEY=your-secret-key
 ```powershell
 	uvicorn app.main:app --reload
 ```
-→ Uvicorn running on http://127.0.0.1:8000 메시지 확인
+→ `Uvicorn running on http://127.0.0.1:8000` 메시지 확인
 
 ### 2. 프론트엔드 빌드
 ```powershell
 	npm run build
 ```
-→ dist/ 폴더 생성 확인
+→ `dist/` 폴더 생성 확인
 
 ### 3. 확장프로그램 로드
 
-* Chrome → chrome://extensions
+* Chrome → `chrome://extensions`
 
 * 개발자 모드 ON → dist/ 폴더 로드
 
 ### 4. 회원가입 / 로그인
 
-* SeeCure 홈에서 회원가입 후 로그인
+* SeeCure Home 버튼을 눌러 회원가입 후 로그인
 
 * localStorage.token 값이 저장되는지 확인
 
 ### 5. URL 등록
 
-* UrlRegistration 페이지에서 예: https://naver.com 등록
+* UrlRegistration 페이지에서 예: `https://naver.com` 등록
 
 * UrlManagement 페이지에서 등록 확인
 
@@ -89,13 +89,13 @@ SECRET_KEY=your-secret-key
 
 * 확장프로그램 팝업에서 보호 모드 ON
 
-* 등록된 URL(https://naver.com) 접속
+* 등록된 URL`(https://naver.com)` 접속
 
 * 다른 얼굴 등장 시: 블러 + 팝업 발생
 
 ### 8. 로그 확인 (개발자용)
 
-* Chrome → chrome://extensions → SeeCure 서비스 워커 콘솔
+* Chrome → `chrome://extensions` → SeeCure 서비스 워커 콘솔
 
 * 정상 동작 시 다음과 같은 로그 확인:
 	```yaml
