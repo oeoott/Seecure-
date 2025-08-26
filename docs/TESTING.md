@@ -1,4 +1,4 @@
-# docs/TESTING.md
+# TESTING.md
 ## SeeCure: 설치 확인 및 테스트 지침
 
 본 문서는 **심사위원 및 개발자**가 SeeCure 애플리케이션 설치 후 기능을 검증할 수 있도록 작성되었습니다.  
