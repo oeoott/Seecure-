@@ -13,7 +13,7 @@
 | 오지원 | 팀 대표, 데이터 베이스 구조, 백엔드 개발 | ojiwon58@gmail.com | ohjiwon3@naver.com |
 | 구나은 | 프론트엔드 개발, UI/UX | 1002naeun@gmail.com | 1002naeun@gmail.com |
 | 임수정 | 프론트엔드 개발, UI/UX | asdlatnwjd@gmail.com | Asdlatnwjd@gmail.com |
-| 이연우 | AI 모델 개발 | kiterainlee@gmail.com | kiterainlee@gmail.com |
+| 이연우 | AI 모델 적용용 | kiterainlee@gmail.com | kiterainlee@gmail.com |
 
 ---
 
@@ -58,7 +58,7 @@ SeeCure는 웹 대시보드, 백엔드 서버, 그리고 브라우저 확장 프
 | :--- | :--- |
 | **프론트엔드** | `React`, `Vite`, `Axios`, `CSS Modules` |
 | **백엔드** | `Python`, `FastAPI`, `SQLAlchemy` |
-| **AI / 컴퓨터 비전** | `insightface`, `OpenCV`, `ONNX Runtime` |
+| **AI / 컴퓨터 비전** | `insightface`, `OpenCV`, `ONNX Runtime`, `Numpy` |
 | **데이터베이스** | `PostgreSQL` |
 
 ---
