@@ -1,0 +1,39 @@
+{
+  "name": "SeeCure",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "description": "당신의 정보를 타인으로부터 지켜드립니다.",
+  "action": {
+    "default_title": "SeeCure",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+  "permissions": [
+    "scripting",
+    "notifications",
+    "offscreen",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js", "content.css", "icon-128.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "offscreen_documents": [
+    {
+      "page": "offscreen.html",
+      "matches": ["<all_urls>"],
+      "reason": "USER_MEDIA",
+      "justification": "웹캠 프레임 캡처"
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+/* FaceManagement.module.css - 구조 개선 및 정렬 통일 */
+
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: 'Inter', sans-serif;
+}
+
+.contentWrapper {
+  flex-grow: 1;
+  margin-left: 260px;
+  padding: 3rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.mainHeader {
+  width: 100%;
+  max-width: 1100px;
+  box-sizing: border-box;
+}
+
+.mainTitle {
+  margin: 0;
+  color: #054071;
+  font-family: 'Inter';
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: #1393DB;
+  font-family: 'Inter';
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.urlListContainer {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.urlItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #054071;
+  background-color: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.urlText {
+  flex-grow: 1;
+  color: #333;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 1.5rem;
+}
+
+.deleteButton {
+  background-color: #F45F5F;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteButton:hover {
+  background-color: #d9534f;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .contentWrapper {
+    margin-left: 0;
+    padding: 1.5rem;
+    gap: 2rem;
+  }
+
+  .mainTitle {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .urlListContainer {
+    gap: 1rem;
+  }
+
+  .urlItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .urlText {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    margin-right: 0;
+    width: 100%;
+    word-break: break-all;
+  }
+
+  .deleteButton {
+    width: 100%;
+    height: 44px;
+  }
+}
